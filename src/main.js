@@ -8,6 +8,7 @@ require(`@/plugins/particles`)
 require(`@/plugins/axios`)
 require(`@/plugins/device`)
 
+import './log'
 import '@/icons' // icon
 import './registerServiceWorker'
 
