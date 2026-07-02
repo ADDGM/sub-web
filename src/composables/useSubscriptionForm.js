@@ -1,4 +1,4 @@
-import { setLocalStorageItem } from '@/utils/storage';
+import { setLocalStorageItem } from '@/utils/storage'
 
 /**
  * 订阅表单状态管理 - 为Vue 2 Options API设计
@@ -8,13 +8,13 @@ export function useSubscriptionForm() {
   return {
     // 表单数据
     form: {
-      sourceSubUrl: "",
-      clientType: "",
-      customBackend: "",
-      remoteConfig: "",
-      excludeRemarks: "",
-      includeRemarks: "",
-      filename: "",
+      sourceSubUrl: '',
+      clientType: '',
+      customBackend: '',
+      remoteConfig: '',
+      excludeRemarks: '',
+      includeRemarks: '',
+      filename: '',
       emoji: true,
       nodeList: false,
       extraset: false,
@@ -43,14 +43,14 @@ export function useSubscriptionForm() {
     customParams: [],
 
     // 高级模式
-    advanced: "2",
+    advanced: '2',
 
     // 是否需要UDP
     needUdp: false,
 
     // 生成的订阅链接
-    customSubUrl: ""
-  };
+    customSubUrl: ''
+  }
 }
 
 /**
@@ -59,9 +59,9 @@ export function useSubscriptionForm() {
  */
 export function addCustomParam(customParams) {
   customParams.push({
-    name: "",
-    value: "",
-  });
+    name: '',
+    value: ''
+  })
 }
 
 /**
@@ -70,7 +70,7 @@ export function addCustomParam(customParams) {
  */
 export function saveSubUrl(form) {
   if (form && form.sourceSubUrl !== '') {
-    const ttl = Number(import.meta.env.VITE_CACHE_TTL) || 3600;
-    setLocalStorageItem('sourceSubUrl', form.sourceSubUrl, ttl);
+    const ttl = Number(import.meta.env.VITE_CACHE_TTL) || 3600
+    setLocalStorageItem('sourceSubUrl', form.sourceSubUrl, ttl)
   }
 }

@@ -4,21 +4,21 @@
  * @returns {string} 存储值
  */
 export const getLocalStorageItem = (itemKey) => {
-  const now = +new Date();
-  let ls = localStorage.getItem(itemKey);
+  const now = +new Date()
+  let ls = localStorage.getItem(itemKey)
 
-  let itemValue = '';
+  let itemValue = ''
   if (ls !== null) {
-    let data = JSON.parse(ls);
+    let data = JSON.parse(ls)
     if (data.expire > now) {
-      itemValue = data.value;
+      itemValue = data.value
     } else {
-      localStorage.removeItem(itemKey);
+      localStorage.removeItem(itemKey)
     }
   }
 
-  return itemValue;
-};
+  return itemValue
+}
 
 /**
  * 设置本地存储项
@@ -27,13 +27,13 @@ export const getLocalStorageItem = (itemKey) => {
  * @param {number} ttl - 生存时间（秒）
  */
 export const setLocalStorageItem = (itemKey, itemValue, ttl) => {
-  const now = +new Date();
+  const now = +new Date()
 
   let data = {
     setTime: now,
     ttl: parseInt(ttl),
     expire: now + ttl * 1000,
     value: itemValue
-  };
-  localStorage.setItem(itemKey, JSON.stringify(data));
-};
+  }
+  localStorage.setItem(itemKey, JSON.stringify(data))
+}

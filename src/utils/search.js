@@ -5,11 +5,9 @@
  */
 export const createFilter = (queryString) => {
   return (candidate) => {
-    return (
-      candidate.value.toLowerCase().indexOf(queryString.toLowerCase()) === 0
-    );
-  };
-};
+    return candidate.value.toLowerCase().indexOf(queryString.toLowerCase()) === 0
+  }
+}
 
 /**
  * 后端搜索建议
@@ -18,9 +16,7 @@ export const createFilter = (queryString) => {
  * @returns {Array} 搜索结果
  */
 export const backendSearch = (queryString, backends) => {
-  let results = queryString
-    ? backends.filter(createFilter(queryString))
-    : backends;
+  let results = queryString ? backends.filter(createFilter(queryString)) : backends
 
-  return results;
-};
+  return results
+}

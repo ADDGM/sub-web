@@ -9,7 +9,9 @@
     <div slot="title">
       Remote config upload
       <el-popover trigger="hover" placement="right" style="margin-left: 10px">
-        <el-link type="primary" :href="sampleConfig" target="_blank" icon="el-icon-info">参考配置</el-link>
+        <el-link type="primary" :href="sampleConfig" target="_blank" icon="el-icon-info"
+          >参考配置</el-link
+        >
         <i class="el-icon-question" slot="reference"></i>
       </el-popover>
     </div>
@@ -36,7 +38,7 @@
 </template>
 
 <script>
-import { CONSTANTS } from '@/config/constants';
+import { CONSTANTS } from '@/config/constants'
 
 export default {
   name: 'ConfigUploadDialog',
@@ -59,26 +61,26 @@ export default {
       sampleConfig: CONSTANTS.REMOTE_CONFIG_SAMPLE,
       localUploadConfig: this.uploadConfig,
       localVisible: this.visible
-    };
+    }
   },
   watch: {
     uploadConfig(newVal) {
-      this.localUploadConfig = newVal;
+      this.localUploadConfig = newVal
     },
     visible(newVal) {
-      this.localVisible = newVal;
+      this.localVisible = newVal
     },
     localVisible(newVal) {
-      this.$emit('update:visible', newVal);
+      this.$emit('update:visible', newVal)
     }
   },
   methods: {
     handleCancel() {
-      this.$emit('cancel');
+      this.$emit('cancel')
     },
     handleConfirm() {
-      this.$emit('confirm', this.localUploadConfig);
+      this.$emit('confirm', this.localUploadConfig)
     }
   }
-};
+}
 </script>

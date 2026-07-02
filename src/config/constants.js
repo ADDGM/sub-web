@@ -11,4 +11,4 @@ export const CONSTANTS = {
   DEFAULT_CLIENT_TYPE: 'clash',
   BUTTON_WIDTH: '140px',
   LARGE_BUTTON_WIDTH: '290px'
-};
+}

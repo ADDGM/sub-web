@@ -5,16 +5,16 @@
  */
 export const formatErrorMessage = (error) => {
   if (typeof error === 'string') {
-    return error;
+    return error
   }
   if (error.response && error.response.data && error.response.data.message) {
-    return error.response.data.message;
+    return error.response.data.message
   }
   if (error.message) {
-    return error.message;
+    return error.message
   }
-  return "操作失败，请重试";
-};
+  return '操作失败，请重试'
+}
 
 /**
  * 清理版本信息格式
@@ -22,10 +22,10 @@ export const formatErrorMessage = (error) => {
  * @returns {string} 清理后的版本信息
  */
 export const formatVersion = (version) => {
-  let cleaned = version.replace(/backend\n$/gm, "");
-  cleaned = cleaned.replace("subconverter", "");
-  return cleaned;
-};
+  let cleaned = version.replace(/backend\n$/gm, '')
+  cleaned = cleaned.replace('subconverter', '')
+  return cleaned
+}
 
 /**
  * 处理订阅链接（去除换行符）
@@ -33,5 +33,5 @@ export const formatVersion = (version) => {
  * @returns {string} 处理后的订阅链接
  */
 export const processSubUrl = (url) => {
-  return url.replace(/(\n|\r|\n\r)/g, "|");
-};
+  return url.replace(/(\n|\r|\n\r)/g, '|')
+}

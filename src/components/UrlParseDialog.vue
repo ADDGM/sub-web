@@ -6,9 +6,7 @@
     :close-on-press-escape="false"
     width="700px"
   >
-    <div slot="title">
-      解析 Subconverter 链接
-    </div>
+    <div slot="title">解析 Subconverter 链接</div>
 
     <el-form label-position="left" :inline="true">
       <el-form-item prop="loadConfig" label="订阅链接：" label-width="85px">
@@ -46,26 +44,26 @@ export default {
     return {
       localLoadConfig: this.loadConfig,
       localVisible: this.visible
-    };
+    }
   },
   watch: {
     loadConfig(newVal) {
-      this.localLoadConfig = newVal;
+      this.localLoadConfig = newVal
     },
     visible(newVal) {
-      this.localVisible = newVal;
+      this.localVisible = newVal
     },
     localVisible(newVal) {
-      this.$emit('update:visible', newVal);
+      this.$emit('update:visible', newVal)
     }
   },
   methods: {
     handleCancel() {
-      this.$emit('cancel');
+      this.$emit('cancel')
     },
     handleConfirm() {
-      this.$emit('confirm', this.localLoadConfig);
+      this.$emit('confirm', this.localLoadConfig)
     }
   }
-};
+}
 </script>

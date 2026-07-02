@@ -7,14 +7,17 @@ Vue.prototype.$getOS = () => {
     isAndroid = /(?:Android)/.test(ua),
     isFireFox = /(?:Firefox)/.test(ua),
     // isChrome = /(?:Chrome|CriOS)/.test(ua),
-    isTablet = /(?:iPad|PlayBook)/.test(ua) || (isAndroid && !/(?:Mobile)/.test(ua)) || (isFireFox && /(?:Tablet)/.test(ua)),
+    isTablet =
+      /(?:iPad|PlayBook)/.test(ua) ||
+      (isAndroid && !/(?:Mobile)/.test(ua)) ||
+      (isFireFox && /(?:Tablet)/.test(ua)),
     isIPhone = /(?:iPhone)/.test(ua) && !isTablet,
-    isPc = !isIPhone && !isAndroid && !isSymbian && !isWindowsPhone;
+    isPc = !isIPhone && !isAndroid && !isSymbian && !isWindowsPhone
 
   return {
     isTablet: isTablet,
     isIPhone: isIPhone,
     isAndroid: isAndroid,
     isPc: isPc
-  };
+  }
 }
