@@ -199,7 +199,14 @@ yarn build
 "version": "0.1.0"
 ```
 
-稳定版本使用 `fork-vX.Y.Z` 标签发布，例如：
+候选版本使用 `fork-rc-vX.Y.Z` 标签验证 Docker 发布流程，只推送候选版本镜像，不更新 `latest`，例如：
+
+```bash
+git tag fork-rc-v0.1.0
+git push origin fork-rc-v0.1.0
+```
+
+稳定版本使用 `fork-vX.Y.Z` 标签发布，会同时推送版本镜像和 `latest`，例如：
 
 ```bash
 git add package.json
@@ -209,7 +216,7 @@ git push origin develop
 git push origin fork-v0.1.0
 ```
 
-Docker 发布由 `fork-v*` 标签触发。仓库需要配置变量 `DOCKER_IMAGE`（如 `yourname/subweb`），以及密钥 `DOCKERHUB_USERNAME`、`DOCKERHUB_PASSWORD`。
+Docker 发布由 `fork-rc-v*` 或 `fork-v*` 标签触发。仓库需要配置变量 `DOCKER_IMAGE`（如 `yourname/subweb`），以及密钥 `DOCKERHUB_USERNAME`、`DOCKERHUB_PASSWORD`。
 
 ## 🤝 贡献
 

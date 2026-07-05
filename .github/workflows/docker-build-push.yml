@@ -4,6 +4,7 @@ on:
   push:
     tags:
       - 'fork-v*'
+      - 'fork-rc-v*'
   workflow_dispatch:
 
 env:
@@ -11,7 +12,7 @@ env:
 
 jobs:
   build-and-push:
-    if: startsWith(github.ref, 'refs/tags/fork-v')
+    if: startsWith(github.ref, 'refs/tags/fork-v') || startsWith(github.ref, 'refs/tags/fork-rc-v')
     runs-on: ubuntu-latest
 
     steps:
@@ -34,15 +35,27 @@ jobs:
           exit 1
         }
 
+    - name: Generate Docker image metadata
+      id: docker-meta
+      run: |
+        if [[ "${GITHUB_REF_NAME}" == fork-v* ]]; then
+          {
+            echo "tags<<EOF"
+            echo "${DOCKER_IMAGE}:${GITHUB_REF_NAME}"
+            echo "${DOCKER_IMAGE}:latest"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+        else
+          echo "tags=${DOCKER_IMAGE}:${GITHUB_REF_NAME}" >> "$GITHUB_OUTPUT"
+        fi
+
     - name: Build and push Docker image
       uses: docker/build-push-action@v7
       with:
         context: .
         platforms: linux/amd64,linux/arm64
         push: true
-        tags: |
-          ${{ env.DOCKER_IMAGE }}:${{ github.ref_name }}
-          ${{ env.DOCKER_IMAGE }}:latest
+        tags: ${{ steps.docker-meta.outputs.tags }}
 
     # ==================== TG 通知 ====================
     - name: Telegram 通知

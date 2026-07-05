@@ -24,7 +24,7 @@ Vue 2.7 + Vite 8 SPA with Element UI. Keep changes small, follow existing patter
 ## CI / Workflows
 
 - **build.yml**: triggers on push to `master`/`develop` and PRs to `develop` — runs `yarn install --frozen-lockfile` + `yarn lint` + `yarn build`, then uploads `dist/` as artifact (7-day retention)
-- **docker-build-push.yml**: triggers on `fork-v*` tags or manual dispatch on a tag ref — builds and pushes multi-arch image (`linux/amd64`, `linux/arm64`) to `${DOCKER_IMAGE}:<tag>` and `${DOCKER_IMAGE}:latest`
+- **docker-build-push.yml**: triggers on `fork-rc-v*` and `fork-v*` tags or manual dispatch on a tag ref — builds and pushes multi-arch image (`linux/amd64`, `linux/arm64`); `fork-rc-v*` pushes only `${DOCKER_IMAGE}:<tag>`, while `fork-v*` also pushes `${DOCKER_IMAGE}:latest`
 - Required GitHub settings for Docker publishing: repository variable `DOCKER_IMAGE` (for example `yourname/subweb`) and secrets `DOCKERHUB_USERNAME` / `DOCKERHUB_PASSWORD`
 
 ## Branch & Release Workflow
@@ -34,7 +34,7 @@ Vue 2.7 + Vite 8 SPA with Element UI. Keep changes small, follow existing patter
 - Sync upstream into `master`, then merge `master` into `develop` before releases.
 - Keep `package.json` `version` aligned with the release tag without the `fork-v` prefix, e.g. `0.1.0` for `fork-v0.1.0`.
 - Validate release candidates from `develop` with `yarn lint` and `yarn build`.
-- Use `fork-vX.Y.Z` tags for releases, e.g. `fork-v0.1.0`; push the tag to trigger Docker publishing.
+- Use `fork-rc-vX.Y.Z` tags for release-candidate Docker validation, e.g. `fork-rc-v0.1.0`; use `fork-vX.Y.Z` tags for releases, e.g. `fork-v0.1.0`.
 
 ## Repository Layout
 
