@@ -19,12 +19,13 @@ Vue 2.7 + Vite 8 SPA with Element UI. Keep changes small, follow existing patter
 | `yarn dev`     | Start dev server (host: 0.0.0.0) |
 | `yarn build`   | Production build                 |
 | `yarn preview` | Preview production build locally |
-| `yarn lint`    | ESLint check                     |
+| `yarn lint`    | ESLint fix                       |
+| `yarn lint:check` | ESLint check                  |
 
 ## CI / Workflows
 
-- **build.yml**: triggers on push to `master`/`develop` and PRs to `develop` — runs `yarn install --frozen-lockfile` + `yarn lint` + `yarn build`, then uploads `dist/` as artifact (7-day retention)
-- **docker-build-push.yml**: triggers on `fork-rc-v*` and `fork-v*` tags or manual dispatch on a tag ref — builds and pushes multi-arch images (`linux/amd64`, `linux/arm64`) to Docker Hub and GHCR; `fork-rc-v*` pushes only `<tag>`, while `fork-v*` also pushes `latest`
+- **build.yml**: triggers on push to `master`/`develop` and PRs to `develop` — runs `yarn install --frozen-lockfile` + `yarn lint:check` + `yarn build`, then uploads `dist/` as artifact (7-day retention)
+- **docker-build-push.yml**: triggers on `v*` tags or manual dispatch on a tag ref — builds and pushes multi-arch images (`linux/amd64`, `linux/arm64`) to Docker Hub and GHCR; `vX.Y.Z-rc.N` pushes only `<tag>`, while `vX.Y.Z` also pushes `latest`
 - Required GitHub settings for Docker Hub publishing: repository variable `DOCKER_IMAGE` (for example `yourname/subweb`) and secrets `DOCKERHUB_USERNAME` / `DOCKERHUB_PASSWORD`; GHCR uses `GITHUB_TOKEN` with `packages: write`
 
 ## Branch & Release Workflow
@@ -32,9 +33,9 @@ Vue 2.7 + Vite 8 SPA with Element UI. Keep changes small, follow existing patter
 - `master` mirrors upstream only; avoid custom application changes there.
 - `develop` contains local custom changes and is the normal development branch.
 - Sync upstream into `master`, then merge `master` into `develop` before releases.
-- Keep `package.json` `version` aligned with the release tag without the `fork-v` prefix, e.g. `0.1.0` for `fork-v0.1.0`.
-- Validate release candidates from `develop` with `yarn lint` and `yarn build`.
-- Use `fork-rc-vX.Y.Z` tags for release-candidate Docker validation, e.g. `fork-rc-v0.1.0`; use `fork-vX.Y.Z` tags for releases, e.g. `fork-v0.1.0`.
+- Keep `package.json` `version` aligned with the release tag without the `v` prefix, e.g. `0.1.0` for `v0.1.0`.
+- Validate release candidates from `develop` with `yarn lint:check` and `yarn build`.
+- Use `vX.Y.Z-rc.N` tags for release-candidate Docker validation, e.g. `v0.1.0-rc.1`; use `vX.Y.Z` tags for releases, e.g. `v0.1.0`.
 
 ## Repository Layout
 
@@ -155,7 +156,7 @@ TTL stored inside the JSON value as `{ setTime, ttl, expire, value }`. `expire` 
 ## Docker
 
 - Base images: `node:24-alpine` (build), `nginx:1.24-alpine` (runtime)
-- Build: `yarn install && yarn build`, output copied to `/usr/share/nginx/html`
+- Build: `yarn install --frozen-lockfile && yarn build`, output copied to `/usr/share/nginx/html`
 - Services compose stack in `services/` includes myurls + Redis
 
 ## Git Hygiene
@@ -204,7 +205,7 @@ data() {
 
 ## Suggested Manual Checks
 
-- `yarn lint`
+- `yarn lint:check`
 - `yarn build`
 - Run `yarn dev` and smoke the main screen
 

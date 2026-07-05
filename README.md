@@ -67,7 +67,8 @@ yarn dev
 | `yarn dev`     | 启动开发服务器   |
 | `yarn build`   | 构建生产版本     |
 | `yarn preview` | 本地预览构建产物 |
-| `yarn lint`    | ESLint 代码检查  |
+| `yarn lint`    | ESLint 自动修复  |
+| `yarn lint:check` | ESLint 代码检查 |
 
 ## ⚙️ 环境配置
 
@@ -149,8 +150,8 @@ docker pull ghcr.io/addgm/sub-web:latest
 镜像标签：
 
 - `latest`：最新稳定版本
-- `fork-vX.Y.Z`：稳定版本标签，例如 `fork-v0.1.3`
-- `fork-rc-vX.Y.Z`：候选版本标签，例如 `fork-rc-v0.1.3`
+- `vX.Y.Z`：稳定版本标签，例如 `v0.1.3`
+- `vX.Y.Z-rc.N`：候选版本标签，例如 `v0.1.3-rc.1`
 
 ### 本地构建
 
@@ -224,34 +225,34 @@ git merge master
 发布前在 `develop` 验证：
 
 ```bash
-yarn lint
+yarn lint:check
 yarn build
 ```
 
-定版时先更新 `package.json` 的 `version`，版本号不包含 `fork-v` 前缀。例如发布 `fork-v0.1.0` 时，`package.json` 应为：
+定版时先更新 `package.json` 的 `version`，版本号不包含 `v` 前缀。例如发布 `v0.1.0` 时，`package.json` 应为：
 
 ```json
 "version": "0.1.0"
 ```
 
-候选版本使用 `fork-rc-vX.Y.Z` 标签验证 Docker 发布流程，只推送候选版本镜像，不更新 `latest`，例如：
+候选版本使用 `vX.Y.Z-rc.N` 标签验证 Docker 发布流程，只推送候选版本镜像，不更新 `latest`，例如：
 
 ```bash
-git tag fork-rc-v0.1.0
-git push origin fork-rc-v0.1.0
+git tag v0.1.0-rc.1
+git push origin v0.1.0-rc.1
 ```
 
-稳定版本使用 `fork-vX.Y.Z` 标签发布，会同时推送版本镜像和 `latest`，例如：
+稳定版本使用 `vX.Y.Z` 标签发布，会同时推送版本镜像和 `latest`，例如：
 
 ```bash
 git add package.json
-git commit -m "chore: release fork-v0.1.0"
-git tag fork-v0.1.0
+git commit -m "chore: release v0.1.0"
+git tag v0.1.0
 git push origin develop
-git push origin fork-v0.1.0
+git push origin v0.1.0
 ```
 
-Docker 发布由 `fork-rc-v*` 或 `fork-v*` 标签触发，并同时推送到 Docker Hub 与 GitHub Container Registry（GHCR）。仓库需要配置变量 `DOCKER_IMAGE=xxxxx/subweb`，以及密钥 `DOCKERHUB_USERNAME`、`DOCKERHUB_PASSWORD`；GHCR 使用 GitHub Actions 自动提供的 `GITHUB_TOKEN`，不需要额外密钥。GHCR 镜像名为 `ghcr.io/xxxxx/sub-web`。
+Docker 发布由 `v*` 标签触发，并同时推送到 Docker Hub 与 GitHub Container Registry（GHCR）。工作流会校验标签格式，只接受 `vX.Y.Z` 或 `vX.Y.Z-rc.N`；候选版本不会更新 `latest`。仓库需要配置变量 `DOCKER_IMAGE=xxxxx/subweb`，以及密钥 `DOCKERHUB_USERNAME`、`DOCKERHUB_PASSWORD`；GHCR 使用 GitHub Actions 自动提供的 `GITHUB_TOKEN`，不需要额外密钥。GHCR 镜像名为 `ghcr.io/xxxxx/sub-web`。
 
 ## 🤝 贡献
 
