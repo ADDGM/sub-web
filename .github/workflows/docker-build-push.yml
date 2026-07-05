@@ -22,6 +22,7 @@ jobs:
   build-and-push:
     if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
+    timeout-minutes: 25
 
     steps:
     - name: Resolve release tag
@@ -100,11 +101,14 @@ jobs:
 
     - name: Build and push Docker image
       uses: docker/build-push-action@v7
+      timeout-minutes: 20
       with:
         context: .
         platforms: linux/amd64,linux/arm64
         push: true
         tags: ${{ steps.docker-meta.outputs.tags }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
 
     - name: Use Node.js 24.x
       uses: actions/setup-node@v6
