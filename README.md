@@ -252,7 +252,9 @@ git push origin develop
 git push origin v0.1.0
 ```
 
-Docker 发布由 `v*` 标签触发，并同时推送到 Docker Hub 与 GitHub Container Registry（GHCR）。工作流会校验标签格式，只接受 `vX.Y.Z` 或 `vX.Y.Z-rc.N`；候选版本不会更新 `latest`。仓库需要配置变量 `DOCKER_IMAGE=xxxxx/subweb`，以及密钥 `DOCKERHUB_USERNAME`、`DOCKERHUB_PASSWORD`；GHCR 使用 GitHub Actions 自动提供的 `GITHUB_TOKEN`，不需要额外密钥。GHCR 镜像名为 `ghcr.io/xxxxx/sub-web`。
+Docker 发布由 `v*` 标签触发，并同时推送到 Docker Hub 与 GitHub Container Registry（GHCR）。工作流会校验标签格式，只接受 `vX.Y.Z` 或 `vX.Y.Z-rc.N`；候选版本不会更新 `latest`。发布成功后，工作流会创建 GitHub Release，上传 `dist` 静态资源压缩包和 SHA256 校验文件；候选标签会创建 prerelease，正式标签会创建 latest release。仓库需要配置变量 `DOCKER_IMAGE=xxxxx/subweb`，以及密钥 `DOCKERHUB_USERNAME`、`DOCKERHUB_PASSWORD`；GHCR 使用 GitHub Actions 自动提供的 `GITHUB_TOKEN`，不需要额外密钥。GHCR 镜像名为 `ghcr.io/xxxxx/sub-web`。
+
+如果标签已经推送，也可以从 Actions 页面手动运行 `Release Docker Image and GitHub Release` 工作流，并输入已存在的标签名补建 GitHub Release。
 
 ## 🤝 贡献
 

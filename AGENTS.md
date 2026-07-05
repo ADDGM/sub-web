@@ -25,7 +25,7 @@ Vue 2.7 + Vite 8 SPA with Element UI. Keep changes small, follow existing patter
 ## CI / Workflows
 
 - **build.yml**: triggers on push to `master`/`develop` and PRs to `develop` — runs `yarn install --frozen-lockfile` + `yarn lint:check` + `yarn build`, then uploads `dist/` as artifact (7-day retention)
-- **docker-build-push.yml**: triggers on `v*` tags or manual dispatch on a tag ref — builds and pushes multi-arch images (`linux/amd64`, `linux/arm64`) to Docker Hub and GHCR; `vX.Y.Z-rc.N` pushes only `<tag>`, while `vX.Y.Z` also pushes `latest`
+- **docker-build-push.yml**: triggers on `v*` tags or manual dispatch with a `tag` input — builds and pushes multi-arch images (`linux/amd64`, `linux/arm64`) to Docker Hub and GHCR, then creates a GitHub Release with a `dist` archive and checksum; `vX.Y.Z-rc.N` pushes only `<tag>` and creates a prerelease, while `vX.Y.Z` also pushes `latest` and creates the latest release
 - Required GitHub settings for Docker Hub publishing: repository variable `DOCKER_IMAGE` (for example `yourname/subweb`) and secrets `DOCKERHUB_USERNAME` / `DOCKERHUB_PASSWORD`; GHCR uses `GITHUB_TOKEN` with `packages: write`
 
 ## Branch & Release Workflow
@@ -35,7 +35,7 @@ Vue 2.7 + Vite 8 SPA with Element UI. Keep changes small, follow existing patter
 - Sync upstream into `master`, then merge `master` into `develop` before releases.
 - Keep `package.json` `version` aligned with the release tag without the `v` prefix, e.g. `0.1.0` for `v0.1.0`.
 - Validate release candidates from `develop` with `yarn lint:check` and `yarn build`.
-- Use `vX.Y.Z-rc.N` tags for release-candidate Docker validation, e.g. `v0.1.0-rc.1`; use `vX.Y.Z` tags for releases, e.g. `v0.1.0`.
+- Use `vX.Y.Z-rc.N` tags for release-candidate Docker validation and GitHub prereleases, e.g. `v0.1.0-rc.1`; use `vX.Y.Z` tags for stable Docker releases and GitHub releases, e.g. `v0.1.0`.
 
 ## Repository Layout
 
