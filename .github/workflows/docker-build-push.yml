@@ -133,7 +133,7 @@ jobs:
           GHCR_IMAGE="${{ steps.docker-meta.outputs.ghcr-image }}"
 
           {
-            echo "## 发布版本
+            echo "## 发布版本"
             echo "\`${TAG}\`"
             echo
             echo "## 发布信息"
