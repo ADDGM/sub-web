@@ -24,8 +24,8 @@ Vue 2.7 + Vite 8 SPA with Element UI. Keep changes small, follow existing patter
 ## CI / Workflows
 
 - **build.yml**: triggers on push to `master`/`develop` and PRs to `develop` — runs `yarn install --frozen-lockfile` + `yarn lint` + `yarn build`, then uploads `dist/` as artifact (7-day retention)
-- **docker-build-push.yml**: triggers on `fork-rc-v*` and `fork-v*` tags or manual dispatch on a tag ref — builds and pushes multi-arch image (`linux/amd64`, `linux/arm64`); `fork-rc-v*` pushes only `${DOCKER_IMAGE}:<tag>`, while `fork-v*` also pushes `${DOCKER_IMAGE}:latest`
-- Required GitHub settings for Docker publishing: repository variable `DOCKER_IMAGE` (for example `yourname/subweb`) and secrets `DOCKERHUB_USERNAME` / `DOCKERHUB_PASSWORD`
+- **docker-build-push.yml**: triggers on `fork-rc-v*` and `fork-v*` tags or manual dispatch on a tag ref — builds and pushes multi-arch images (`linux/amd64`, `linux/arm64`) to Docker Hub and GHCR; `fork-rc-v*` pushes only `<tag>`, while `fork-v*` also pushes `latest`
+- Required GitHub settings for Docker Hub publishing: repository variable `DOCKER_IMAGE` (for example `yourname/subweb`) and secrets `DOCKERHUB_USERNAME` / `DOCKERHUB_PASSWORD`; GHCR uses `GITHUB_TOKEN` with `packages: write`
 
 ## Branch & Release Workflow
 

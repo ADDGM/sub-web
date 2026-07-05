@@ -216,7 +216,7 @@ git push origin develop
 git push origin fork-v0.1.0
 ```
 
-Docker 发布由 `fork-rc-v*` 或 `fork-v*` 标签触发。仓库需要配置变量 `DOCKER_IMAGE`（如 `yourname/subweb`），以及密钥 `DOCKERHUB_USERNAME`、`DOCKERHUB_PASSWORD`。
+Docker 发布由 `fork-rc-v*` 或 `fork-v*` 标签触发，并同时推送到 Docker Hub 与 GitHub Container Registry（GHCR）。仓库需要配置变量 `DOCKER_IMAGE`（如 `yourname/subweb`），以及密钥 `DOCKERHUB_USERNAME`、`DOCKERHUB_PASSWORD`；GHCR 使用 GitHub Actions 自动提供的 `GITHUB_TOKEN`，不需要额外密钥。GHCR 镜像名格式为 `ghcr.io/<owner>/<repo>`，例如 `ghcr.io/addgm/sub-web`。
 
 ## 🤝 贡献
 
