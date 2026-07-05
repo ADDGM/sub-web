@@ -131,6 +131,13 @@ jobs:
         {
           echo "# sub-web ${TAG}"
           echo
+          echo "## 发布信息"
+          echo
+          echo "- 发布时间: \`$(date -u '+%Y-%m-%d %H:%M:%S UTC')\`"
+          echo "- 触发方式: \`${GITHUB_EVENT_NAME}\`"
+          echo "- 工作流运行: [#${GITHUB_RUN_NUMBER}](${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID})"
+          echo "- 提交: [${GITHUB_SHA}](${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/commit/${GITHUB_SHA})"
+          echo
           echo "## Docker 镜像"
           echo
           echo "- Docker Hub: \`${DOCKER_IMAGE}:${TAG}\`"
