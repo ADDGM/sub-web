@@ -81,6 +81,7 @@ jobs:
     # ==================== TG 通知 ====================
     - name: Telegram 通知
       if: always() # 确保无论成功还是失败都会发送通知
+      continue-on-error: true
       uses: appleboy/telegram-action@v1.0.1
       with:
         to: ${{ secrets.TELEGRAM_TO }}

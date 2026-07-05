@@ -2,7 +2,7 @@
 FROM node:24-alpine AS build
 WORKDIR /app
 COPY . .
-RUN yarn install
+RUN yarn install --frozen-lockfile
 RUN yarn build
 
 FROM nginx:1.24-alpine
