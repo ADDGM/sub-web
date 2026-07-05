@@ -129,8 +129,6 @@ jobs:
         GHCR_IMAGE="${{ steps.docker-meta.outputs.ghcr-image }}"
 
         {
-          echo "# sub-web ${TAG}"
-          echo
           echo "## 发布信息"
           echo
           echo "- 发布时间: \`$(date -u '+%Y-%m-%d %H:%M:%S UTC')\`"
@@ -165,7 +163,7 @@ jobs:
       run: |
         TAG="${{ steps.release.outputs.tag }}"
 
-        RELEASE_ARGS=(--verify-tag --title "sub-web ${TAG}" --notes-file release-notes.md)
+        RELEASE_ARGS=(--verify-tag --title "${TAG}" --notes-file release-notes.md)
         if [[ "${{ steps.release.outputs.prerelease }}" == "true" ]]; then
           RELEASE_ARGS+=(--prerelease --latest=false)
         else
