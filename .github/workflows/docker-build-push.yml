@@ -167,7 +167,7 @@ jobs:
       run: |
         TAG="${{ steps.release.outputs.tag }}"
 
-        RELEASE_ARGS=(--verify-tag --title "${TAG}" --notes-file release-notes.md)
+        RELEASE_ARGS=(--verify-tag --title "sub-web ${TAG}" --notes-file release-notes.md)
         if [[ "${{ steps.release.outputs.prerelease }}" == "true" ]]; then
           RELEASE_ARGS+=(--prerelease --latest=false)
         else
