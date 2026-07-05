@@ -26,3 +26,6 @@ yarn-error.log*
 mise.toml
 mise-tasks
 mise
+
+# Codex/MCP local state
+.spec-workflow

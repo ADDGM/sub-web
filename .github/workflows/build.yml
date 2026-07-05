@@ -2,12 +2,11 @@ name: Build
 
 on:
   push:
-    branches: [ master, dev ]
+    branches: [master, develop]
   pull_request:
-    branches: [ master, dev ]
+    branches: [develop]
 
 jobs:
-
   build:
     name: Build
     runs-on: ubuntu-latest
@@ -17,26 +16,44 @@ jobs:
         node-version: [24.x]
 
     steps:
-    - uses: actions/checkout@v7
+      - uses: actions/checkout@v7
 
-    - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v6
-      with:
-        node-version: ${{ matrix.node-version }}
-        cache: 'yarn'
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: "yarn"
 
-    - name: Install dependencies
-      run: yarn install --frozen-lockfile
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
 
-    - name: Run linter
-      run: yarn lint
+      - name: Run linter
+        run: yarn lint
 
-    - name: Build
-      run: yarn build
+      - name: Build
+        run: yarn build
 
-    - name: Upload build artifacts
-      uses: actions/upload-artifact@v7
-      with:
-        name: dist-${{ matrix.node-version }}
-        path: dist/
-        retention-days: 7
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: dist-${{ matrix.node-version }}
+          path: dist/
+          retention-days: 7
+
+      # ==================== TG 通知 ====================
+      - name: Telegram 通知
+        if: always() # 确保无论成功还是失败都会发送通知
+        uses: appleboy/telegram-action@v1.0.1
+        with:
+          to: ${{ secrets.TELEGRAM_TO }}
+          token: ${{ secrets.TELEGRAM_TOKEN }}
+          format: markdown
+          message: |
+            *GitHub Actions CI 构建报告*
+
+            *工作流*: `${{ github.workflow }}`
+            *状态*: ${{ job.status == 'success' && '✅ 构建成功' || '❌ 构建失败' }}
+            *触发事件*: `${{ github.event_name }}`
+            *提交*: [${{ github.sha }}](${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }})
+            *分支*: `${{ github.ref_name }}`
+            *触发人*: ${{ github.actor }}

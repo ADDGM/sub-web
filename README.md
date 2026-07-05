@@ -170,6 +170,47 @@ server {
 - **[tindy2013/subconverter](https://github.com/tindy2013/subconverter)** - 订阅转换后端
 - **[CareyWang/MyUrls](https://github.com/CareyWang/MyUrls)** - 短链接服务
 
+## 🚦 分支与发布流程
+
+本仓库作为 fork 维护时，建议将 `master` 仅用于同步上游，所有自定义修改放在 `develop`。
+
+同步上游后合入开发分支：
+
+```bash
+git checkout master
+git fetch upstream
+git merge --ff-only upstream/master
+git push origin master
+
+git checkout develop
+git merge master
+```
+
+发布前在 `develop` 验证：
+
+```bash
+yarn lint
+yarn build
+```
+
+定版时先更新 `package.json` 的 `version`，版本号不包含 `fork-v` 前缀。例如发布 `fork-v0.1.0` 时，`package.json` 应为：
+
+```json
+"version": "0.1.0"
+```
+
+稳定版本使用 `fork-vX.Y.Z` 标签发布，例如：
+
+```bash
+git add package.json
+git commit -m "chore: release fork-v0.1.0"
+git tag fork-v0.1.0
+git push origin develop
+git push origin fork-v0.1.0
+```
+
+Docker 发布由 `fork-v*` 标签触发。仓库需要配置变量 `DOCKER_IMAGE`（如 `yourname/subweb`），以及密钥 `DOCKERHUB_USERNAME`、`DOCKERHUB_PASSWORD`。
+
 ## 🤝 贡献
 
 1. Fork 本仓库

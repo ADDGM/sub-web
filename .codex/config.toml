@@ -1,0 +1,8 @@
+[mcp_servers.spec-workflow]
+type = "stdio"
+command = "cmd"
+args = ["/c", "npx", "-y", "@pimzino/spec-workflow-mcp@latest", "."]
+startup_timeout_sec = 60
+
+[mcp_servers.spec-workflow.env]
+SYSTEMROOT = "C:/Windows"
