@@ -13,13 +13,13 @@ Vue 2.7 + Vite 8 SPA with Element UI. Keep changes small, follow existing patter
 
 ## Commands
 
-| Command | Description |
-|---------|-------------|
-| `yarn install` | Install dependencies |
-| `yarn dev` | Start dev server (host: 0.0.0.0) |
-| `yarn build` | Production build |
+| Command        | Description                      |
+| -------------- | -------------------------------- |
+| `yarn install` | Install dependencies             |
+| `yarn dev`     | Start dev server (host: 0.0.0.0) |
+| `yarn build`   | Production build                 |
 | `yarn preview` | Preview production build locally |
-| `yarn lint` | ESLint check |
+| `yarn lint`    | ESLint check                     |
 
 ## CI / Workflows
 
@@ -75,25 +75,32 @@ services/                        # Docker Compose stack (subweb + myurls + redis
 ## Key Modules
 
 ### `src/config/constants.js`
+
 All values read from `import.meta.env` with `VITE_` prefix. Key constants:
+
 - `DEFAULT_BACKEND` — appends `/sub?` to `VITE_SUBCONVERTER_DEFAULT_BACKEND`
 - `DEFAULT_CLIENT_TYPE` — hardcoded `'clash'`
 - `SHORT_URL_API`, `CONFIG_UPLOAD_API`, `PROJECT`, `BOT_LINK`, etc.
 
 ### `src/composables/useSubscriptionForm.js`
+
 Returns plain object merged into `data()` via spread. Form fields include: `sourceSubUrl`, `clientType`, `customBackend`, `remoteConfig`, `emoji`, `nodeList`, `sort`, `udp`, `tfo`, `scv`, `fdn`, `expand`, `appendType`, `insert`, `new_name`, `tpl.surge.doh`, `tpl.clash.doh`. Default mode is advanced (`advanced: "2"`).
 
 ### `src/composables/useSubscription.js`
+
 `makeUrl(form, advanced, processedSubUrl, currentBackend, customParams, needUdp)` — returns empty string on validation failure, otherwise builds full query string. Advanced mode adds remote config, include/exclude, filename, UDP, template, and custom params.
 
 ### `src/composables/useUrlParser.js`
+
 `analyzeUrl(url)` — if URL contains `"target"`, returns as-is; otherwise fetches and returns `response.url` (short-link expansion, requires CORS on short-link service).  
 `parseUrl(url, form, customParams, onSuccess, onError)` — parses all query params back into form fields; unknown params become `customParams` entries.
 
 ### `src/services/`
+
 All service classes are static methods. They take `$axios` as first argument (injected via plugin). Silent failures are acceptable for `getBackendVersion`. Upload response shape: `{ code: 0, data: { url }, msg }`. Short URL response shape: `{ Code: 1, ShortUrl, Message }`.
 
 ### `src/utils/storage.js`
+
 TTL stored inside the JSON value as `{ setTime, ttl, expire, value }`. `expire` checked on every read; expired entries are removed automatically. TTL value comes from `VITE_CACHE_TTL` env var.
 
 ## Code Style

@@ -6,7 +6,7 @@
 ![License](https://img.shields.io/badge/License-MIT-blue.svg)
 ![Docker](https://img.shields.io/badge/Docker-Ready-blue.svg)
 
-基于 Vue.js 2.7 与 [tindy2013/subconverter](https://github.com/tindy2013/subconverter) 后端实现的订阅配置自动生成 Web 界面。
+基于 Vue.js 2.7 与 [tindy2013/subconverter](https://github.com/tindy2013/subconverter) 后端实现的订阅配置自动生成 Web 界面。本仓库是 [CareyWang/sub-web](https://github.com/CareyWang/sub-web) 的维护版 fork，提供 Docker Hub 与 GHCR 多架构镜像。
 
 ## ✨ 特性
 
@@ -28,15 +28,25 @@ docker run -d \
   -p 58080:80 \
   --restart always \
   --name subweb \
-  careywong/subweb:latest
+  addgmyh/subweb:latest
 ```
 
 访问 <http://localhost:58080/>
 
+也可以使用 GitHub Container Registry 镜像：
+
+```bash
+docker run -d \
+  -p 58080:80 \
+  --restart always \
+  --name subweb \
+  ghcr.io/addgm/sub-web:latest
+```
+
 ### 本地开发
 
 ```bash
-git clone https://github.com/CareyWang/sub-web.git
+git clone https://github.com/ADDGM/sub-web.git
 cd sub-web
 yarn install
 yarn dev
@@ -52,12 +62,12 @@ yarn dev
 
 ## 🛠️ 常用命令
 
-| 命令 | 说明 |
-|------|------|
-| `yarn dev` | 启动开发服务器 |
-| `yarn build` | 构建生产版本 |
+| 命令           | 说明             |
+| -------------- | ---------------- |
+| `yarn dev`     | 启动开发服务器   |
+| `yarn build`   | 构建生产版本     |
 | `yarn preview` | 本地预览构建产物 |
-| `yarn lint` | ESLint 代码检查 |
+| `yarn lint`    | ESLint 代码检查  |
 
 ## ⚙️ 环境配置
 
@@ -117,6 +127,31 @@ src/
 
 ## 🐳 Docker 部署
 
+### 预构建镜像
+
+Docker Hub：
+
+```bash
+docker pull addgmyh/subweb:latest
+```
+
+GitHub Container Registry：
+
+```bash
+docker pull ghcr.io/addgm/sub-web:latest
+```
+
+支持平台：
+
+- `linux/amd64`
+- `linux/arm64`
+
+镜像标签：
+
+- `latest`：最新稳定版本
+- `fork-vX.Y.Z`：稳定版本标签，例如 `fork-v0.1.3`
+- `fork-rc-vX.Y.Z`：候选版本标签，例如 `fork-rc-v0.1.3`
+
 ### 本地构建
 
 ```bash
@@ -172,7 +207,7 @@ server {
 
 ## 🚦 分支与发布流程
 
-本仓库作为 fork 维护时，建议将 `master` 仅用于同步上游，所有自定义修改放在 `develop`。
+本仓库作为 fork 维护时，将 `master` 仅用于同步上游，所有自定义修改放在 `develop`。
 
 同步上游后合入开发分支：
 
@@ -216,7 +251,7 @@ git push origin develop
 git push origin fork-v0.1.0
 ```
 
-Docker 发布由 `fork-rc-v*` 或 `fork-v*` 标签触发，并同时推送到 Docker Hub 与 GitHub Container Registry（GHCR）。仓库需要配置变量 `DOCKER_IMAGE`（如 `yourname/subweb`），以及密钥 `DOCKERHUB_USERNAME`、`DOCKERHUB_PASSWORD`；GHCR 使用 GitHub Actions 自动提供的 `GITHUB_TOKEN`，不需要额外密钥。GHCR 镜像名格式为 `ghcr.io/<owner>/<repo>`，例如 `ghcr.io/addgm/sub-web`。
+Docker 发布由 `fork-rc-v*` 或 `fork-v*` 标签触发，并同时推送到 Docker Hub 与 GitHub Container Registry（GHCR）。仓库需要配置变量 `DOCKER_IMAGE=xxxxx/subweb`，以及密钥 `DOCKERHUB_USERNAME`、`DOCKERHUB_PASSWORD`；GHCR 使用 GitHub Actions 自动提供的 `GITHUB_TOKEN`，不需要额外密钥。GHCR 镜像名为 `ghcr.io/xxxxx/sub-web`。
 
 ## 🤝 贡献
 
