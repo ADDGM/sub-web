@@ -28,7 +28,11 @@ jobs:
         password: ${{ secrets.DOCKERHUB_PASSWORD }}
 
     - name: Validate Docker image setting
-      run: test -n "$DOCKER_IMAGE" || (echo "Set repository variable DOCKER_IMAGE, for example: yourname/subweb" && exit 1)
+      run: |
+        test -n "$DOCKER_IMAGE" || {
+          echo "请设置仓库变量 DOCKER_IMAGE，例如：yourname/subweb"
+          exit 1
+        }
 
     - name: Build and push Docker image
       uses: docker/build-push-action@v7
