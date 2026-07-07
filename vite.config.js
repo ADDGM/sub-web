@@ -5,9 +5,8 @@ import vue from '@vitejs/plugin-vue2'
 const srcDir = fileURLToPath(new URL('./src', import.meta.url))
 
 export default defineConfig({
-  plugins: [
-    vue()
-  ],
+  plugins: [vue()],
+  base: '/sub-web/',
   resolve: {
     alias: {
       '@': srcDir
