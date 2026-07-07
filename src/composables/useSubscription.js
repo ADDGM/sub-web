@@ -5,6 +5,35 @@ import { validateForm } from '@/utils/validators'
  */
 export function useSubscription() {
   /**
+   * 规范化后端地址
+   * @param {string} backend - 后端地址
+   * @returns {string} 可直接拼接参数的后端地址
+   */
+  const normalizeBackendUrl = (backend) => {
+    const trimmedBackend = (backend || '').trim()
+
+    if (trimmedBackend === '') {
+      return ''
+    }
+
+    if (trimmedBackend.endsWith('?') || trimmedBackend.endsWith('&')) {
+      return trimmedBackend
+    }
+
+    if (trimmedBackend.includes('?')) {
+      return trimmedBackend + '&'
+    }
+
+    const backendWithoutSlash = trimmedBackend.replace(/\/$/, '')
+
+    if (backendWithoutSlash.endsWith('/sub')) {
+      return backendWithoutSlash + '?'
+    }
+
+    return backendWithoutSlash + '/sub?'
+  }
+
+  /**
    * 构建基础URL
    * @param {Object} form - 表单数据
    * @param {string} processedSubUrl - 处理后的订阅链接
@@ -12,8 +41,10 @@ export function useSubscription() {
    * @returns {string} 基础URL
    */
   const buildBaseUrl = (form, processedSubUrl, currentBackend) => {
+    const backendUrl = normalizeBackendUrl(currentBackend)
+
     return (
-      currentBackend +
+      backendUrl +
       'target=' +
       form.clientType +
       '&url=' +
@@ -109,6 +140,11 @@ export function useSubscription() {
       params += '&filename=' + encodeURIComponent(form.filename)
     }
 
+    // User-Agent
+    if (form.userAgent) {
+      params += '&ua=' + encodeURIComponent(form.userAgent)
+    }
+
     // 节点类型
     if (form.appendType) {
       params += '&append_type=' + form.appendType.toString()
@@ -162,6 +198,7 @@ export function useSubscription() {
   return {
     makeUrl,
     buildBaseUrl,
-    buildAdvancedParams
+    buildAdvancedParams,
+    normalizeBackendUrl
   }
 }

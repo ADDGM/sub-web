@@ -4,7 +4,7 @@
       <el-col>
         <el-card>
           <div slot="header">
-            Subscription Converter
+            在线订阅转换
             <svg-icon icon-class="github" style="margin-left: 20px" @click="goToProject" />
 
             <div style="display: inline-block; position: absolute; right: 20px">
@@ -39,16 +39,28 @@
 
               <div v-if="advanced === '2'">
                 <el-form-item label="后端地址:">
-                  <el-autocomplete
-                    style="width: 100%"
-                    v-model="form.customBackend"
-                    :fetch-suggestions="backendSearch"
-                    placeholder="动动小手，（建议）自行搭建后端服务。例：http://127.0.0.1:25500/sub?"
-                  >
-                    <el-button slot="append" @click="gotoGayhub" icon="el-icon-link"
-                      >前往项目仓库</el-button
-                    >
-                  </el-autocomplete>
+                  <el-row type="flex">
+                    <el-col>
+                      <el-select
+                        v-model="form.customBackend"
+                        allow-create
+                        clearable
+                        filterable
+                        placeholder="请选择或输入后端地址"
+                        style="width: 100%"
+                      >
+                        <el-option
+                          v-for="item in options.backendOptions"
+                          :key="item.value"
+                          :label="item.label"
+                          :value="item.value"
+                        ></el-option>
+                      </el-select>
+                    </el-col>
+                    <el-button style="margin-left: 10px" @click="gotoGayhub" icon="el-icon-link">
+                      前往项目仓库
+                    </el-button>
+                  </el-row>
                 </el-form-item>
                 <el-form-item label="远程配置:">
                   <el-select
@@ -89,6 +101,23 @@
                 </el-form-item>
                 <el-form-item label="FileName:">
                   <el-input v-model="form.filename" placeholder="返回的订阅文件名" />
+                </el-form-item>
+                <el-form-item label="User-Agent:">
+                  <el-select
+                    v-model="form.userAgent"
+                    allow-create
+                    clearable
+                    filterable
+                    placeholder="默认"
+                    style="width: 100%"
+                  >
+                    <el-option
+                      v-for="item in options.userAgents"
+                      :key="item.label"
+                      :label="item.label"
+                      :value="item.value"
+                    ></el-option>
+                  </el-select>
                 </el-form-item>
 
                 <el-form-item v-for="(param, i) in customParams" :key="i">
@@ -284,8 +313,10 @@
 <script>
 // 导入配置
 import { CONSTANTS } from '@/config/constants'
+import { BACKEND_OPTIONS } from '@/config/backend-options'
 import { CLIENT_TYPES } from '@/config/client-types'
 import { REMOTE_CONFIGS } from '@/config/remote-configs'
+import { USER_AGENT_OPTIONS } from '@/config/user-agents'
 
 // 导入Composables
 import {
@@ -321,8 +352,9 @@ export default {
       // 配置选项
       options: {
         clientTypes: CLIENT_TYPES,
-        backendOptions: [{ value: 'http://127.0.0.1:25500/sub?' }],
-        remoteConfig: REMOTE_CONFIGS
+        backendOptions: BACKEND_OPTIONS,
+        remoteConfig: REMOTE_CONFIGS,
+        userAgents: USER_AGENT_OPTIONS
       },
 
       // 状态
@@ -369,7 +401,7 @@ export default {
     }
   },
   created() {
-    document.title = 'Subscription Converter'
+    document.title = '在线订阅转换'
     this.isPC = this.$getOS().isPc
 
     // 获取 url cache
@@ -533,20 +565,6 @@ export default {
         .catch(() => {
           this.loading = false
         })
-    },
-
-    backendSearch(queryString, cb) {
-      const results = this.backendSearchSuggestions(queryString, this.options.backendOptions)
-      cb(results)
-    },
-
-    backendSearchSuggestions(queryString, backends) {
-      if (queryString) {
-        return backends.filter((backend) => {
-          return backend.value.toLowerCase().indexOf(queryString.toLowerCase()) === 0
-        })
-      }
-      return backends
     },
 
     async getBackendVersion() {
