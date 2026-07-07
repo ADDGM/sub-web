@@ -104,7 +104,7 @@ jobs:
         timeout-minutes: 20
         with:
           context: .
-          platforms: linux/amd64,linux/arm64,linux/arm/v7
+          platforms: linux/amd64,linux/arm64
           push: true
           tags: ${{ steps.docker-meta.outputs.tags }}
           cache-from: type=gha
