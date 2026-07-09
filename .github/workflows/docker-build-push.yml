@@ -51,6 +51,12 @@ jobs:
         with:
           ref: ${{ steps.release.outputs.tag }}
 
+      - name: Resolve checked out commit
+        id: source
+        run: |
+          COMMIT_SHA="$(git rev-parse HEAD)"
+          echo "commit-sha=${COMMIT_SHA}" >> "$GITHUB_OUTPUT"
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v4
 
@@ -141,7 +147,7 @@ jobs:
             echo "- 发布时间: \`$(date -u '+%Y-%m-%d %H:%M:%S UTC')\`"
             echo "- 触发方式: \`${GITHUB_EVENT_NAME}\`"
             echo "- 工作流运行: [#${GITHUB_RUN_NUMBER}](${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID})"
-            echo "- 提交: [${GITHUB_SHA}](${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/commit/${GITHUB_SHA})"
+            echo "- 提交: [${{ steps.source.outputs.commit-sha }}](${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/commit/${{ steps.source.outputs.commit-sha }})"
             echo
             echo "## Docker 镜像"
             echo
@@ -170,7 +176,7 @@ jobs:
         run: |
           TAG="${{ steps.release.outputs.tag }}"
 
-          RELEASE_ARGS=(--verify-tag --title "sub-web ${TAG}" --notes-file release-notes.md)
+          RELEASE_ARGS=(--verify-tag --target "${{ steps.source.outputs.commit-sha }}" --title "sub-web ${TAG}" --notes-file release-notes.md)
           if [[ "${{ steps.release.outputs.prerelease }}" == "true" ]]; then
             RELEASE_ARGS+=(--prerelease --latest=false)
           else

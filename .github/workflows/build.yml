@@ -1,4 +1,5 @@
 name: Build
+run-name: Build ${{ github.ref_name }} @ ${{ github.sha }}
 
 on:
   push:
@@ -17,6 +18,16 @@ jobs:
 
     steps:
       - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.sha }}
+
+      - name: Resolve artifact metadata
+        id: artifact
+        run: |
+          SAFE_REF="${GITHUB_REF_NAME//\//-}"
+          SHORT_SHA="$(git rev-parse --short=12 HEAD)"
+          echo "ref-name=${SAFE_REF}" >> "$GITHUB_OUTPUT"
+          echo "short-sha=${SHORT_SHA}" >> "$GITHUB_OUTPUT"
 
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v6
@@ -33,10 +44,21 @@ jobs:
       - name: Build
         run: yarn build
 
+      - name: Write build metadata
+        run: |
+          {
+            echo "event=${GITHUB_EVENT_NAME}"
+            echo "ref=${GITHUB_REF}"
+            echo "ref_name=${GITHUB_REF_NAME}"
+            echo "sha=$(git rev-parse HEAD)"
+            echo "run_id=${GITHUB_RUN_ID}"
+            echo "run_number=${GITHUB_RUN_NUMBER}"
+          } > dist/build-info.txt
+
       - name: Upload build artifacts
         uses: actions/upload-artifact@v7
         with:
-          name: dist-node${{ matrix.node-version }}
+          name: dist-${{ steps.artifact.outputs.ref-name }}-${{ steps.artifact.outputs.short-sha }}-node${{ matrix.node-version }}
           path: dist/
           retention-days: 7
 
