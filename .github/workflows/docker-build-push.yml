@@ -128,7 +128,7 @@ jobs:
       - name: Build release assets
         run: |
           TAG="${{ steps.release.outputs.tag }}"
-          yarn build
+          yarn build:subpath
           mkdir -p release-assets
           tar -czf "release-assets/sub-web-${TAG}-dist.tar.gz" -C dist .
           sha256sum "release-assets/sub-web-${TAG}-dist.tar.gz" > release-assets/checksums.txt

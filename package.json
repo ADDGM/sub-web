@@ -8,6 +8,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "build:subpath": "yarn build && node scripts/prepare-subpath-dist.mjs",
     "preview": "vite preview",
     "lint": "eslint --ext .js,.vue src --fix",
     "lint:check": "eslint --ext .js,.vue src"
