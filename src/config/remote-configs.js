@@ -5,23 +5,28 @@ export const REMOTE_CONFIGS = [
     options: [
       {
         label: 'Aethersailor 标准版（推荐）大多数用户使用',
-        value: 'https://api.asailor.org/Custom_OpenClash_Rules/main/cfg/Custom_Clash.ini'
+        value:
+          'https://raw.githubusercontent.com/Aethersailor/Custom_OpenClash_Rules/refs/heads/main/cfg/Custom_Clash.ini'
       },
       {
         label: 'Aethersailor 大陆优化版 大陆网络环境 特殊场景使用',
-        value: 'https://api.asailor.org/Custom_OpenClash_Rules/main/cfg/Custom_Clash_Mainland.ini'
+        value:
+          'https://raw.githubusercontent.com/Aethersailor/Custom_OpenClash_Rules/refs/heads/main/cfg/Custom_Clash_Mainland.ini'
       },
       {
         label: 'Aethersailor GFW 精简模板 基础代理分流 极简规则使用',
-        value: 'https://api.asailor.org/Custom_OpenClash_Rules/main/cfg/Custom_Clash_GFW.ini'
+        value:
+          'https://raw.githubusercontent.com/Aethersailor/Custom_OpenClash_Rules/refs/heads/main/cfg/Custom_Clash_GFW.ini'
       },
       {
         label: 'Aethersailor 轻量模板 低性能路由器 精简分流使用',
-        value: 'https://api.asailor.org/Custom_OpenClash_Rules/main/cfg/Custom_Clash_Lite.ini'
+        value:
+          'https://raw.githubusercontent.com/Aethersailor/Custom_OpenClash_Rules/refs/heads/main/cfg/Custom_Clash_Lite.ini'
       },
       {
         label: 'Aethersailor 全分组模板 重度用户 精细化分流使用',
-        value: 'https://api.asailor.org/Custom_OpenClash_Rules/main/cfg/Custom_Clash_Full.ini'
+        value:
+          'https://raw.githubusercontent.com/Aethersailor/Custom_OpenClash_Rules/refs/heads/main/cfg/Custom_Clash_Full.ini'
       }
     ]
   },
