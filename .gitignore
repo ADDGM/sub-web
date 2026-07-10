@@ -28,4 +28,7 @@ mise-tasks
 mise
 
 # Codex/MCP local state
-.spec-workflow
+.spec-workflow/
+.serena/
+.playwright-mcp/
+.agents/

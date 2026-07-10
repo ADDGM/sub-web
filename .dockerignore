@@ -3,6 +3,8 @@
 .codex
 .agents
 .playwright-mcp
+.spec-workflow
+.serena
 node_modules
 dist
 coverage
