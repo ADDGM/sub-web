@@ -1,4 +1,4 @@
 interface:
-  display_name: "Sub Web Git"
-  short_description: "项目专属 Git 分支、提交与发布规范"
-  default_prompt: "Use $sub-web-git to prepare a safe Git workflow for this sub-web repository."
+  display_name: "Sub Web Git Workflow"
+  short_description: "安全处理 sub-web 的分支同步、提交规划、CI 校验与版本发布"
+  default_prompt: "Use $sub-web-git to inspect this repository and propose the safest next Git steps without modifying anything."
