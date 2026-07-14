@@ -28,12 +28,14 @@ jobs:
       contents: write
       packages: write
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 30
     outputs:
       tag: ${{ steps.release.outputs.tag }}
       prerelease: ${{ steps.release.outputs.prerelease }}
       commit-sha: ${{ steps.source.outputs.commit-sha }}
       ghcr-image: ${{ steps.docker-meta.outputs.ghcr-image }}
+      dockerhub-digest: ${{ steps.image-digests.outputs.dockerhub-digest }}
+      ghcr-digest: ${{ steps.image-digests.outputs.ghcr-digest }}
 
     steps:
       - name: Resolve release tag
@@ -140,6 +142,7 @@ jobs:
           fi
 
       - name: Build and push Docker image
+        id: docker-build
         uses: docker/build-push-action@v7
         timeout-minutes: 20
         with:
@@ -149,6 +152,55 @@ jobs:
           tags: ${{ steps.docker-meta.outputs.tags }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+      - name: Inspect published image digests
+        id: image-digests
+        timeout-minutes: 5
+        env:
+          BUILD_DIGEST: ${{ steps.docker-build.outputs.digest }}
+          DOCKERHUB_REFERENCE: ${{ env.DOCKER_IMAGE }}:${{ steps.release.outputs.tag }}
+          GHCR_REFERENCE: ${{ steps.docker-meta.outputs.ghcr-image }}:${{ steps.release.outputs.tag }}
+        run: |
+          resolve_digest() {
+            local reference="$1"
+            local inspection
+            local digest
+
+            inspection="$(docker buildx imagetools inspect "$reference")"
+            digest="$(printf '%s\n' "$inspection" | awk '$1 == "Digest:" { print $2; exit }')"
+
+            if [[ ! "$digest" =~ ^sha256:[0-9a-f]{64}$ ]]; then
+              echo "无法解析镜像 manifest digest：$reference" >&2
+              return 1
+            fi
+
+            printf '%s\n' "$digest"
+          }
+
+          if [[ ! "$BUILD_DIGEST" =~ ^sha256:[0-9a-f]{64}$ ]]; then
+            echo "Docker 构建未返回有效 digest：$BUILD_DIGEST"
+            exit 1
+          fi
+
+          DOCKERHUB_DIGEST="$(resolve_digest "$DOCKERHUB_REFERENCE")"
+          GHCR_DIGEST="$(resolve_digest "$GHCR_REFERENCE")"
+
+          if [[ "$DOCKERHUB_DIGEST" != "$BUILD_DIGEST" ]] ||
+             [[ "$GHCR_DIGEST" != "$BUILD_DIGEST" ]]; then
+            echo "已发布镜像 digest 与 Docker 构建结果不一致"
+            echo "Docker build：$BUILD_DIGEST"
+            echo "Docker Hub：$DOCKERHUB_DIGEST"
+            echo "GHCR：$GHCR_DIGEST"
+            exit 1
+          fi
+
+          {
+            echo "dockerhub-digest=$DOCKERHUB_DIGEST"
+            echo "ghcr-digest=$GHCR_DIGEST"
+          } >> "$GITHUB_OUTPUT"
+
+          echo "Docker Hub：${DOCKERHUB_REFERENCE}@${DOCKERHUB_DIGEST}"
+          echo "GHCR：${GHCR_REFERENCE}@${GHCR_DIGEST}"
 
       - name: Install dependencies
         run: yarn install --frozen-lockfile
@@ -162,6 +214,9 @@ jobs:
           sha256sum "release-assets/sub-web-${TAG}-dist.tar.gz" > release-assets/checksums.txt
 
       - name: Generate release notes
+        env:
+          DOCKERHUB_DIGEST: ${{ steps.image-digests.outputs.dockerhub-digest }}
+          GHCR_DIGEST: ${{ steps.image-digests.outputs.ghcr-digest }}
         run: |
           TAG="${{ steps.release.outputs.tag }}"
           GHCR_IMAGE="${{ steps.docker-meta.outputs.ghcr-image }}"
@@ -179,8 +234,8 @@ jobs:
             echo
             echo "## Docker 镜像"
             echo
-            echo "- Docker Hub: \`${DOCKER_IMAGE}:${TAG}\`"
-            echo "- GHCR: \`${GHCR_IMAGE}:${TAG}\`"
+            echo "- Docker Hub: \`${DOCKER_IMAGE}:${TAG}@${DOCKERHUB_DIGEST}\`"
+            echo "- GHCR: \`${GHCR_IMAGE}:${TAG}@${GHCR_DIGEST}\`"
             if [[ "${{ steps.release.outputs.prerelease }}" != "true" ]]; then
               echo "- Docker Hub latest: \`${DOCKER_IMAGE}:latest\`"
               echo "- GHCR latest: \`${GHCR_IMAGE}:latest\`"
@@ -233,6 +288,8 @@ jobs:
       RELEASE_TAG: ${{ needs.build-and-push.outputs.tag || inputs.tag || github.ref_name }}
       SOURCE_SHA: ${{ needs.build-and-push.outputs.commit-sha }}
       GHCR_IMAGE: ${{ needs.build-and-push.outputs.ghcr-image }}
+      DOCKERHUB_DIGEST: ${{ needs.build-and-push.outputs.dockerhub-digest }}
+      GHCR_DIGEST: ${{ needs.build-and-push.outputs.ghcr-digest }}
     if: ${{ always() }}
     needs: build-and-push
     permissions: {}
@@ -256,8 +313,8 @@ jobs:
             *标签*: `${{ env.RELEASE_TAG }}`
             *类型*: `${{ needs.build-and-push.outputs.prerelease == 'true' && 'Release Candidate / Prerelease' || needs.build-and-push.outputs.prerelease == 'false' && 'Stable' || 'Unknown' }}`
             *latest*: `${{ needs.build-and-push.outputs.prerelease == 'true' && '不更新' || needs.build-and-push.outputs.prerelease == 'false' && '更新' || '未知' }}`
-            *Docker Hub*: `${{ env.DOCKER_IMAGE != '' && format('{0}:{1}', env.DOCKER_IMAGE, env.RELEASE_TAG) || '未配置' }}`
-            *GHCR*: `${{ env.GHCR_IMAGE != '' && format('{0}:{1}', env.GHCR_IMAGE, env.RELEASE_TAG) || '未解析' }}`
+            *Docker Hub*: `${{ env.DOCKER_IMAGE != '' && env.DOCKERHUB_DIGEST != '' && format('{0}:{1}@{2}', env.DOCKER_IMAGE, env.RELEASE_TAG, env.DOCKERHUB_DIGEST) || env.DOCKER_IMAGE != '' && format('{0}:{1}', env.DOCKER_IMAGE, env.RELEASE_TAG) || '未配置' }}`
+            *GHCR*: `${{ env.GHCR_IMAGE != '' && env.GHCR_DIGEST != '' && format('{0}:{1}@{2}', env.GHCR_IMAGE, env.RELEASE_TAG, env.GHCR_DIGEST) || env.GHCR_IMAGE != '' && format('{0}:{1}', env.GHCR_IMAGE, env.RELEASE_TAG) || '未解析' }}`
             *提交*: ${{ env.SOURCE_SHA != '' && format('[{0}]({1}/{2}/commit/{0})', env.SOURCE_SHA, github.server_url, github.repository) || '`未解析`' }}
             *触发事件*: `${{ github.event_name }}`
             *工作流运行*: [#${{ github.run_number }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})

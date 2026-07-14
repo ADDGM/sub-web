@@ -97,6 +97,7 @@ jobs:
           assert "branches: [develop]" in build_header
           assert "master" not in build_header
           assert "\n    tags:" not in build_header
+          assert "workflow_dispatch:" in build_header
           assert "permissions:\n  contents: read" in build_header
           assert "cancel-in-progress: true" in build_header
 
@@ -115,11 +116,23 @@ jobs:
           assert "Validate Docker image setting" in release_job
           assert "Validate source version" in release_job
           assert "package.json" in release_job
+          assert "id: docker-build" in release_job
+          assert "steps.docker-build.outputs.digest" in release_job
+          assert "Inspect published image digests" in release_job
+          assert "docker buildx imagetools inspect" in release_job
+          assert "dockerhub-digest" in release_job
+          assert "ghcr-digest" in release_job
+          assert "@${DOCKERHUB_DIGEST}" in release_job
+          assert "@${GHCR_DIGEST}" in release_job
           docker_validation = release_job.index("Validate Docker image setting")
           source_validation = release_job.index("Validate source version")
           docker_login = release_job.index("Log in to Docker Hub")
+          docker_build = release_job.index("Build and push Docker image")
+          digest_inspection = release_job.index("Inspect published image digests")
+          release_notes = release_job.index("Generate release notes")
           assert docker_validation < docker_login
           assert source_validation < docker_login
+          assert docker_build < digest_inspection < release_notes
 
           for path in (build_path, release_path):
               notify = workflow_jobs[path]["notify"]
@@ -128,6 +141,10 @@ jobs:
               assert "permissions: {}" in notify
               assert "continue-on-error: true" in notify
               assert "记录 Telegram 通知跳过原因" in notify
+
+          release_notify = workflow_jobs[release_path]["notify"]
+          assert "DOCKERHUB_DIGEST" in release_notify
+          assert "GHCR_DIGEST" in release_notify
 
           print(f"Validated {len(workflow_paths)} workflow files.")
           PY
