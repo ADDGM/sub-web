@@ -12,8 +12,11 @@ on:
         type: string
 
 permissions:
-  contents: write
-  packages: write
+  contents: read
+
+concurrency:
+  group: release-${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
+  cancel-in-progress: false
 
 env:
   DOCKER_IMAGE: ${{ vars.DOCKER_IMAGE }}
@@ -21,6 +24,9 @@ env:
 jobs:
   build-and-push:
     if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
+    permissions:
+      contents: write
+      packages: write
     runs-on: ubuntu-latest
     timeout-minutes: 25
     outputs:
@@ -51,6 +57,13 @@ jobs:
             echo "prerelease=false" >> "$GITHUB_OUTPUT"
           fi
 
+      - name: Validate Docker image setting
+        run: |
+          test -n "$DOCKER_IMAGE" || {
+            echo "请设置仓库变量 DOCKER_IMAGE，例如：yourname/subweb"
+            exit 1
+          }
+
       - name: Check out repository
         uses: actions/checkout@v7
         with:
@@ -61,6 +74,29 @@ jobs:
         run: |
           COMMIT_SHA="$(git rev-parse HEAD)"
           echo "commit-sha=${COMMIT_SHA}" >> "$GITHUB_OUTPUT"
+
+      - name: Use Node.js 24.x
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24.x
+          cache: "yarn"
+
+      - name: Validate source version
+        env:
+          RELEASE_TAG: ${{ steps.release.outputs.tag }}
+        run: |
+          TAG_VERSION="${RELEASE_TAG#v}"
+          EXPECTED_VERSION="${TAG_VERSION%%-rc.*}"
+          PACKAGE_VERSION="$(node -p "require('./package.json').version")"
+
+          if [[ "$PACKAGE_VERSION" != "$EXPECTED_VERSION" ]]; then
+            echo "发布标签与 package.json 版本不一致"
+            echo "标签核心版本：${EXPECTED_VERSION}"
+            echo "package.json：${PACKAGE_VERSION}"
+            exit 1
+          fi
+
+          echo "已验证 package.json 版本：${PACKAGE_VERSION}"
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v4
@@ -77,13 +113,6 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Validate Docker image setting
-        run: |
-          test -n "$DOCKER_IMAGE" || {
-            echo "请设置仓库变量 DOCKER_IMAGE，例如：yourname/subweb"
-            exit 1
-          }
 
       - name: Generate Docker image metadata
         id: docker-meta
@@ -120,12 +149,6 @@ jobs:
           tags: ${{ steps.docker-meta.outputs.tags }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-
-      - name: Use Node.js 24.x
-        uses: actions/setup-node@v6
-        with:
-          node-version: 24.x
-          cache: "yarn"
 
       - name: Install dependencies
         run: yarn install --frozen-lockfile

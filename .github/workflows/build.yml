@@ -6,10 +6,18 @@ on:
   pull_request:
     branches: [develop]
 
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.ref }}-${{ github.workflow }}
+  cancel-in-progress: true
+
 jobs:
   build:
     name: Build
     runs-on: ubuntu-latest
+    timeout-minutes: 15
 
     strategy:
       matrix:
