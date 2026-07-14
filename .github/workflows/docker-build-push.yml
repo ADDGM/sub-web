@@ -23,6 +23,11 @@ jobs:
     if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     timeout-minutes: 25
+    outputs:
+      tag: ${{ steps.release.outputs.tag }}
+      prerelease: ${{ steps.release.outputs.prerelease }}
+      commit-sha: ${{ steps.source.outputs.commit-sha }}
+      ghcr-image: ${{ steps.docker-meta.outputs.ghcr-image }}
 
     steps:
       - name: Resolve release tag
@@ -197,21 +202,48 @@ jobs:
               "${RELEASE_ARGS[@]}"
           fi
 
-      # ==================== TG 通知 ====================
+  notify:
+    name: Telegram Release Notification
+    env:
+      TELEGRAM_TO: ${{ secrets.TELEGRAM_TO }}
+      TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+      RELEASE_TAG: ${{ needs.build-and-push.outputs.tag || inputs.tag || github.ref_name }}
+      SOURCE_SHA: ${{ needs.build-and-push.outputs.commit-sha }}
+      GHCR_IMAGE: ${{ needs.build-and-push.outputs.ghcr-image }}
+    if: ${{ always() }}
+    needs: build-and-push
+    permissions: {}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
       - name: Telegram 通知
-        if: always() # 确保无论成功还是失败都会发送通知
+        if: ${{ env.TELEGRAM_TO != '' && env.TELEGRAM_TOKEN != '' }}
         continue-on-error: true
         uses: appleboy/telegram-action@v1.0.1
         with:
-          to: ${{ secrets.TELEGRAM_TO }}
-          token: ${{ secrets.TELEGRAM_TOKEN }}
+          to: ${{ env.TELEGRAM_TO }}
+          token: ${{ env.TELEGRAM_TOKEN }}
           format: markdown
           message: |
-            *GitHub Actions Docker 发布报告*
+            *sub-web 发布报告*
 
             *工作流*: `${{ github.workflow }}`
-            *状态*: ${{ job.status == 'success' && '🚀 Docker 镜像与 GitHub Release 发布成功' || '❌ 发布流程失败' }}
-            *Docker Hub*: `${{ env.DOCKER_IMAGE }}:${{ steps.release.outputs.tag }}`
-            *GHCR*: `${{ steps.docker-meta.outputs.ghcr-image }}:${{ steps.release.outputs.tag }}`
-            *标签*: `${{ steps.release.outputs.tag }}`
-            *触发人*: ${{ github.actor }}
+            *状态*: `${{ needs.build-and-push.result == 'failure' && '❌ 发布失败' || needs.build-and-push.result == 'cancelled' && '⚪ 发布取消' || needs.build-and-push.result == 'success' && '🚀 发布成功' || '⚠️ 发布未完成' }}`
+            *发布任务*: `${{ needs.build-and-push.result }}`
+            *标签*: `${{ env.RELEASE_TAG }}`
+            *类型*: `${{ needs.build-and-push.outputs.prerelease == 'true' && 'Release Candidate / Prerelease' || needs.build-and-push.outputs.prerelease == 'false' && 'Stable' || 'Unknown' }}`
+            *latest*: `${{ needs.build-and-push.outputs.prerelease == 'true' && '不更新' || needs.build-and-push.outputs.prerelease == 'false' && '更新' || '未知' }}`
+            *Docker Hub*: `${{ env.DOCKER_IMAGE != '' && format('{0}:{1}', env.DOCKER_IMAGE, env.RELEASE_TAG) || '未配置' }}`
+            *GHCR*: `${{ env.GHCR_IMAGE != '' && format('{0}:{1}', env.GHCR_IMAGE, env.RELEASE_TAG) || '未解析' }}`
+            *提交*: ${{ env.SOURCE_SHA != '' && format('[{0}]({1}/{2}/commit/{0})', env.SOURCE_SHA, github.server_url, github.repository) || '`未解析`' }}
+            *触发事件*: `${{ github.event_name }}`
+            *工作流运行*: [#${{ github.run_number }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
+            *触发人*: `${{ github.actor }}`
+      - name: 记录 Telegram 通知跳过原因
+        if: ${{ env.TELEGRAM_TO == '' || env.TELEGRAM_TOKEN == '' }}
+        run: |
+          {
+            echo "### Telegram 通知已跳过"
+            echo
+            echo "未配置 TELEGRAM_TO 或 TELEGRAM_TOKEN。"
+          } >> "$GITHUB_STEP_SUMMARY"
