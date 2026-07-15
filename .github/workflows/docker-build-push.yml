@@ -150,8 +150,8 @@ jobs:
           platforms: linux/amd64,linux/arm64
           push: true
           tags: ${{ steps.docker-meta.outputs.tags }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-from: type=gha,scope=sub-web-docker,timeout=3m
+          cache-to: type=gha,scope=sub-web-docker,mode=max,ignore-error=true,timeout=5m
 
       - name: Inspect published image digests
         id: image-digests
