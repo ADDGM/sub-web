@@ -77,5 +77,5 @@ Treat the checked-in workflows as authoritative. At the time this skill was upda
 
 - `.github/workflows/build.yml` runs on pushes and pull requests targeting `develop`.
 - CI installs with `yarn install --frozen-lockfile`.
-- CI runs `yarn lint` and `yarn build:subpath`.
+- CI runs `yarn lint`, `yarn test`, and `yarn build:subpath`.
 - GitHub Actions remains the final authority for workflow behavior that cannot be reproduced locally.

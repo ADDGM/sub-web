@@ -1,7 +1,7 @@
 # sub-web GitHub Actions 优化方案与决策留档
 
 > 文档性质：实施、评估与取舍留档，不再作为未经核对即可执行的任务清单  
-> 评估日期：2026-07-16  
+> 评估日期：2026-07-19
 > 适用分支：`develop` 及从 `develop` 创建的版本 Tag  
 > 分支约束：`master` 仅用于同步上游，不运行自定义构建  
 > 当前版本源：`package.json`  
@@ -23,6 +23,8 @@
 - [Release #29429460030](https://github.com/ADDGM/sub-web/actions/runs/29429460030) 通过 `v0.1.6-rc.1` Tag 成功：主发布 Job 用时 2 分 24 秒，其中 Docker 构建与推送约 1 分 43 秒；通知 Job 成功。
 - [Workflow Lint #29410946917](https://github.com/ADDGM/sub-web/actions/runs/29410946917) 在 `8d7c19c` 上成功。
 - 2026-07-16 查询 actionlint 官方 Release，`v1.7.12` 仍为最新稳定版；当前版本与 SHA256 固定方式无需调整。
+- `d787b2b` 完成单元测试门禁、输入边界测试和 Workflow 收尾；[Build #30](https://github.com/ADDGM/sub-web/actions/runs/29674554904) 与 [Workflow Lint #4](https://github.com/ADDGM/sub-web/actions/runs/29674554923) 均成功。
+- [Release #30](https://github.com/ADDGM/sub-web/actions/runs/29675888369) 通过 `v0.1.6-rc.2` 成功，发布 Docker Hub 与 GHCR 双架构镜像、静态资产和校验文件，并创建 GitHub prerelease。
 
 ### 0.3 已完成基线与验证范围
 
@@ -48,26 +50,26 @@
 - `v0.1.6` 对应 `package.json` 的 `0.1.6`。
 - `v0.1.6-rc.1` 同样对应 `package.json` 的核心版本 `0.1.6`，版本字段不包含 `-rc.1`。
 
-### 0.4 当前工作区已实现、待提交后在线验证
+### 0.4 2026-07-19 在线验证结论
 
-以下内容已经出现在 2026-07-16 的工作区差异中，但不应在提交和 GitHub Actions 成功前记为“线上完成”：
+以下事项已随 `d787b2b` 提交，并由 Build、Workflow Lint 和 `v0.1.6-rc.2` Release 在线验证。故意失败、并发冲突和重复发布等破坏性分支没有专门制造线上运行，继续以代码审查和实际故障重跑作为验收方式。
 
 | 事项 | 必要性 | 评估结论 | 验收要求 |
 | --- | --- | --- | --- |
-| `upload-artifact` 增加 `if-no-files-found: error` | 高 | 应保留；防止 `dist/` 路径回归时 CI 假成功 | 正常 Build 上传成功；不存在路径时步骤失败 |
-| 在 `release-assets` 内生成 `checksums.txt` | 高 | 应保留；下载两个资产到同一目录后应可直接校验 | `sha256sum -c checksums.txt` 直接通过 |
-| 手动发布描述强调 Existing Tag，并禁止版本数字前导零 | 中 | 应保留；减少误操作并统一 SemVer 输入 | 接受正常稳定版/RC，拒绝前导零和其他预发布类型 |
-| `AGENTS.md` 同步构建、发布和版本规则 | 高 | 应保留；避免文档再次指导错误命令或触发条件 | 与三个实际 Workflow 逐项一致 |
-| Workflow Lint 从 10 分钟收紧到 5 分钟 | 低 | 合理；历史运行约十秒，5 分钟仍有充足余量 | 线上运行无超时 |
-| Workflow Lint 移除 `paths` 过滤 | 中 | 建议保留；检查耗时极低，并可为每次 Push/PR 稳定报告 required check | Build 与 Workflow Lint 在普通提交上都能报告状态 |
-| 删除基于 Python 字符串扫描的策略断言 | 中 | 建议按“已废弃”处理；详见 0.6 | actionlint 通过，关键政策继续由 Workflow、`AGENTS.md` 和评审核对 |
+| `upload-artifact` 增加 `if-no-files-found: error` | 高 | 已完成；Build #30 正常上传成功，缺失路径失败语义由 Action 配置保证 | 保留 |
+| 在 `release-assets` 内生成 `checksums.txt` | 高 | 已完成；Release #30 上传静态包与可直接使用的校验文件 | 保留 |
+| 手动发布描述强调 Existing Tag，并禁止版本数字前导零 | 中 | 已完成；正常 RC 路径在线通过，非法输入继续由正则门禁 | 保留 |
+| `AGENTS.md` 同步构建、发布和版本规则 | 高 | 已完成；与三个实际 Workflow 一致 | 保留 |
+| Workflow Lint 从 10 分钟收紧到 5 分钟 | 低 | 已完成；Workflow Lint #4 无超时 | 保留 |
+| Workflow Lint 移除 `paths` 过滤 | 中 | 已完成；普通提交同时报告 Build 与 Workflow Lint | 保留 |
+| 删除基于 Python 字符串扫描的策略断言 | 中 | 已完成并按“已废弃”留档；详见 0.6 | 不恢复字符串扫描 |
 
 ### 0.5 后续事项优先级
 
 | 事项 | 优先级 | 必要性判断 | 决策 |
 | --- | --- | --- | --- |
-| 为 URL 构建、解析、校验、格式化和存储 TTL 增加单元测试 | 已实施 | 高；补齐原 CI 最大缺口 | Vitest 4.0.18、48 个纯函数测试已本地通过并接入 Build，待提交后在线验证 |
-| 第三方 Action 固定到 Commit SHA，并配置 Dependabot/Renovate | P1 | 中；提升供应链可控性，但增加维护成本 | 保留评估，建议“固定 SHA + 自动更新”成对实施 |
+| 为 URL 构建、解析、校验、格式化和存储 TTL 增加单元测试 | 已完成 | 高；补齐原 CI 最大缺口 | Vitest 4.0.18、6 个测试文件和 50 个测试已本地及线上通过并接入 Build |
+| 第三方 Action 固定到 Commit SHA，并配置 Dependabot/Renovate | 暂不采用 | 中；完整 SHA 会增加维护摩擦，当前项目规模不需要额外固定层 | 保留现有版本标签；配置 Dependabot 每周检查 GitHub Actions 更新，PR 固定以 `develop` 为目标分支 |
 | 自动生成用户可读的提交/PR 变更记录 | P2 | 中低；当前 Release Notes 已满足发布追溯 | 延后，先设计重跑时不重复、不覆盖元数据的规则 |
 | 进一步拆分 `resolve-release`、镜像发布和 GitHub Release Job | P2 | 低；当前发布仅数分钟，拆分会增加 Artifact 和权限编排 | 暂缓，只有发布复杂度或审计要求明显上升时再做 |
 | 增加 `X.Y.Z`、`X.Y` 或 `vX.Y` Docker 别名 | P2 | 低；现有用户已有精确 `vX.Y.Z` 和 `latest` | 暂不实施；只有出现明确订阅 Minor 更新需求时再扩展公开契约 |
@@ -108,10 +110,10 @@
 - 使用 Git for Windows Bash 复现 Workflow 的 Tag 正则：三个接受样例和六个拒绝样例均符合预期。
 - 在临时目录按 Workflow 方式生成压缩包与 `checksums.txt`，`sha256sum -c checksums.txt` 直接通过，校验文件只记录 `sub-web-v0.1.6-rc.2-dist.tar.gz`，不含目录前缀。
 - Vitest `4.0.18` 共 6 个测试文件、50 个测试全部通过，覆盖 URL 构建/解析往返、TTL 边界与损坏缓存、CRLF、校验器、格式化和搜索；解析测试同时覆盖重复导入时清理旧表单值，以及多条虚假订阅链接的回车/`|`转换。
-- Build Workflow 已加入 `yarn test`，顺序为安装、Lint、单元测试、构建；该 CI 改动待提交后在线验证。
+- Build Workflow 已加入 `yarn test`，顺序为安装、Lint、单元测试、构建；Build #30 已在线通过。
 - Vitest `4.1.10` 虽支持 Vite 8，但触发 Yarn 1 已知链接错误；当前固定 `4.0.18` 以保持 Yarn 1 安装稳定。测试仅使用 Node 环境，生产构建仍由项目现有 Vite 8 执行。升级包管理器后再评估 Vitest 4.1+。
 
-上述结果证明当前差异可进入提交评审，但不能替代 GitHub Hosted Runner 和真实 RC 发布。当前未执行提交、推送、Tag 或发布操作。
+上述本地结果已由 `d787b2b` 的 GitHub Hosted Runner 与真实 RC 发布补充验证。`v0.1.6-rc.2` 已发布且不更新 `latest`；稳定版 `v0.1.6`、故意失败、同 Tag 并发冲突和重复发布路径仍按实际需要验证，不为测试而制造破坏性运行。
 
 ## 1. 历史方案：目标（以下内容已失效，不可直接执行）
 
