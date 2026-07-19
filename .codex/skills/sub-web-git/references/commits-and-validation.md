@@ -64,12 +64,12 @@ Run `git diff --cached` after staging and before requesting final commit confirm
 Match validation to the changed files:
 
 - Skill-only or documentation-only changes: run the skill validator or another focused format check; do not run the application build without a reason.
-- `src/`, `public/`, build scripts, or Vite configuration: run `yarn lint:check` and `yarn build:subpath`.
-- `.github/workflows/build.yml`: inspect the full YAML and shell blocks, then run `yarn lint:check` and `yarn build:subpath` when project build behavior is affected.
-- `.github/workflows/docker-build-push.yml`: inspect the full YAML, tag parsing, Docker tags, release assets, and shell blocks; run `yarn lint:check` and `yarn build:subpath` when release assets or build behavior is affected.
-- `package.json` or `yarn.lock`: run `yarn install --frozen-lockfile` when dependency integrity changed, followed by `yarn lint:check` and `yarn build:subpath`.
+- `src/`, `public/`, build scripts, or Vite configuration: run `yarn lint` and `yarn build:subpath`.
+- `.github/workflows/build.yml`: inspect the full YAML and shell blocks, then run `yarn lint` and `yarn build:subpath` when project build behavior is affected.
+- `.github/workflows/docker-build-push.yml`: inspect the full YAML, tag parsing, Docker tags, release assets, and shell blocks; run `yarn lint` and `yarn build:subpath` when release assets or build behavior is affected.
+- `package.json` or `yarn.lock`: run `yarn install --frozen-lockfile` when dependency integrity changed, followed by `yarn lint` and `yarn build:subpath`.
 
-Do not use `yarn lint` for validation because it modifies files. Record skipped validation with the exact reason.
+`yarn lint` is the read-only validation command. Use a separate explicit ESLint command with `--fix` only when intentionally repairing formatting.
 
 ## Current CI Baseline
 
@@ -77,5 +77,5 @@ Treat the checked-in workflows as authoritative. At the time this skill was upda
 
 - `.github/workflows/build.yml` runs on pushes and pull requests targeting `develop`.
 - CI installs with `yarn install --frozen-lockfile`.
-- CI runs `yarn lint:check` and `yarn build:subpath`.
+- CI runs `yarn lint` and `yarn build:subpath`.
 - GitHub Actions remains the final authority for workflow behavior that cannot be reproduced locally.

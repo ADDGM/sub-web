@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: "Release tag, for example v0.1.3 or v0.1.3-rc.1"
+        description: "Existing release tag; this workflow does not create tags (for example v0.1.6 or v0.1.6-rc.1)"
         required: true
         type: string
 
@@ -47,8 +47,9 @@ jobs:
             TAG="${GITHUB_REF_NAME}"
           fi
 
-          if [[ ! "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-rc\.[0-9]+)?$ ]]; then
-            echo "发布标签必须使用 vX.Y.Z 或 vX.Y.Z-rc.N，例如：v0.1.3 或 v0.1.3-rc.1"
+          TAG_PATTERN='^v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-rc\.(0|[1-9][0-9]*))?$'
+          if [[ ! "$TAG" =~ $TAG_PATTERN ]]; then
+            echo "发布标签必须使用 vX.Y.Z 或 vX.Y.Z-rc.N，且数字除 0 外不能有前导零"
             exit 1
           fi
 
@@ -211,7 +212,10 @@ jobs:
           yarn build:subpath
           mkdir -p release-assets
           tar -czf "release-assets/sub-web-${TAG}-dist.tar.gz" -C dist .
-          sha256sum "release-assets/sub-web-${TAG}-dist.tar.gz" > release-assets/checksums.txt
+          (
+            cd release-assets
+            sha256sum "sub-web-${TAG}-dist.tar.gz" > checksums.txt
+          )
 
       - name: Generate release notes
         env:

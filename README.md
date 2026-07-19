@@ -67,8 +67,7 @@ yarn dev
 | `yarn dev`     | 启动开发服务器   |
 | `yarn build`   | 构建生产版本     |
 | `yarn preview` | 本地预览构建产物 |
-| `yarn lint`    | ESLint 自动修复  |
-| `yarn lint:check` | ESLint 代码检查 |
+| `yarn lint`    | ESLint 代码检查  |
 
 ## ⚙️ 环境配置
 
@@ -225,7 +224,7 @@ git merge master
 发布前在 `develop` 验证：
 
 ```bash
-yarn lint:check
+yarn lint
 yarn build
 ```
 

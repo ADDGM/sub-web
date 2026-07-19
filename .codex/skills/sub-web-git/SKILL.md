@@ -22,7 +22,7 @@ Read only the reference needed for the current task:
 - Expect `origin` to point to `https://github.com/ADDGM/sub-web.git`.
 - Expect `upstream` to point to `https://github.com/CareyWang/sub-web.git`.
 - Use Yarn with Node `24.x`.
-- Treat `yarn lint:check` and `yarn build:subpath` as the current CI-equivalent project checks.
+- Treat `yarn lint` and `yarn build:subpath` as the current CI-equivalent project checks.
 - Treat `.github/workflows/build.yml` and `.github/workflows/docker-build-push.yml` as authoritative when documented behavior differs from the repository.
 - Keep `dist/`, `node_modules/`, `.env.local`, and `.env.*.local` out of commits.
 

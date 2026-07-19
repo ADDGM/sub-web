@@ -9,10 +9,14 @@ export const getLocalStorageItem = (itemKey) => {
 
   let itemValue = ''
   if (ls !== null) {
-    let data = JSON.parse(ls)
-    if (data.expire > now) {
-      itemValue = data.value
-    } else {
+    try {
+      const data = JSON.parse(ls)
+      if (data.expire > now) {
+        itemValue = data.value
+      } else {
+        localStorage.removeItem(itemKey)
+      }
+    } catch {
       localStorage.removeItem(itemKey)
     }
   }

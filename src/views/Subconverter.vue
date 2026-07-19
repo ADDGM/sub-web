@@ -328,6 +328,7 @@ import { useSubscription } from '@/composables/useSubscription'
 import { useUrlParser } from '@/composables/useUrlParser'
 
 // 导入工具函数
+import { processSubUrl } from '@/utils/formatters'
 import { getLocalStorageItem } from '@/utils/storage'
 
 // 导入服务
@@ -393,7 +394,7 @@ export default {
     },
 
     processedSubUrl() {
-      return this.form.sourceSubUrl.replace(/(\n|\r|\n\r)/g, '|')
+      return processSubUrl(this.form.sourceSubUrl)
     },
 
     currentBackend() {

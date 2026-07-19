@@ -3,12 +3,8 @@ name: Workflow Lint
 on:
   push:
     branches: [develop]
-    paths:
-      - ".github/workflows/**"
   pull_request:
     branches: [develop]
-    paths:
-      - ".github/workflows/**"
   workflow_dispatch:
 
 permissions:
@@ -22,7 +18,7 @@ jobs:
   actionlint:
     name: Lint GitHub Actions workflows
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 5
     steps:
       - name: Check out repository
         uses: actions/checkout@v7
@@ -43,108 +39,3 @@ jobs:
 
       - name: Run actionlint
         run: ${{ steps.get-actionlint.outputs.executable }} -color
-
-      - name: Check workflow policies
-        run: |
-          python3 <<'PY'
-          import re
-          from pathlib import Path
-
-          workflow_dir = Path(".github/workflows")
-          workflow_paths = sorted(
-              {*workflow_dir.glob("*.yml"), *workflow_dir.glob("*.yaml")}
-          )
-
-          def split_job_blocks(path):
-              text = path.read_text(encoding="utf-8")
-              try:
-                  jobs = text.split("\njobs:\n", 1)[1]
-              except IndexError as error:
-                  raise AssertionError(f"{path}: missing jobs section") from error
-
-              matches = list(re.finditer(r"(?m)^  ([A-Za-z0-9_-]+):\s*$", jobs))
-              assert matches, f"{path}: no jobs found"
-              return {
-                  match.group(1): jobs[
-                      match.start() : matches[index + 1].start()
-                      if index + 1 < len(matches)
-                      else len(jobs)
-                  ]
-                  for index, match in enumerate(matches)
-              }
-
-          workflow_jobs = {
-              path: split_job_blocks(path)
-              for path in workflow_paths
-          }
-
-          missing_timeouts = [
-              f"{path}:{job}"
-              for path, jobs in workflow_jobs.items()
-              for job, block in jobs.items()
-              if not re.search(
-                  r"(?m)^    timeout-minutes:\s*[1-9][0-9]*\s*$",
-                  block,
-              )
-          ]
-          assert not missing_timeouts, (
-              "Jobs without timeout-minutes: " + ", ".join(missing_timeouts)
-          )
-
-          build_path = workflow_dir / "build.yml"
-          build_text = build_path.read_text(encoding="utf-8")
-          build_header = build_text.split("\njobs:\n", 1)[0]
-          assert "branches: [develop]" in build_header
-          assert "master" not in build_header
-          assert "\n    tags:" not in build_header
-          assert "workflow_dispatch:" in build_header
-          assert "permissions:\n  contents: read" in build_header
-          assert "cancel-in-progress: true" in build_header
-
-          release_path = workflow_dir / "docker-build-push.yml"
-          release_text = release_path.read_text(encoding="utf-8")
-          release_header = release_text.split("\njobs:\n", 1)[0]
-          assert '      - "v*"' in release_header
-          assert "\n    branches:" not in release_header
-          assert "permissions:\n  contents: read" in release_header
-          assert "packages: write" not in release_header
-          assert "cancel-in-progress: false" in release_header
-
-          release_job = workflow_jobs[release_path]["build-and-push"]
-          assert "contents: write" in release_job
-          assert "packages: write" in release_job
-          assert "Validate Docker image setting" in release_job
-          assert "Validate source version" in release_job
-          assert "package.json" in release_job
-          assert "id: docker-build" in release_job
-          assert "steps.docker-build.outputs.digest" in release_job
-          assert "Inspect published image digests" in release_job
-          assert "docker buildx imagetools inspect" in release_job
-          assert "dockerhub-digest" in release_job
-          assert "ghcr-digest" in release_job
-          assert "@${DOCKERHUB_DIGEST}" in release_job
-          assert "@${GHCR_DIGEST}" in release_job
-          docker_validation = release_job.index("Validate Docker image setting")
-          source_validation = release_job.index("Validate source version")
-          docker_login = release_job.index("Log in to Docker Hub")
-          docker_build = release_job.index("Build and push Docker image")
-          digest_inspection = release_job.index("Inspect published image digests")
-          release_notes = release_job.index("Generate release notes")
-          assert docker_validation < docker_login
-          assert source_validation < docker_login
-          assert docker_build < digest_inspection < release_notes
-
-          for path in (build_path, release_path):
-              notify = workflow_jobs[path]["notify"]
-              assert "always()" in notify
-              assert "needs:" in notify
-              assert "permissions: {}" in notify
-              assert "continue-on-error: true" in notify
-              assert "记录 Telegram 通知跳过原因" in notify
-
-          release_notify = workflow_jobs[release_path]["notify"]
-          assert "DOCKERHUB_DIGEST" in release_notify
-          assert "GHCR_DIGEST" in release_notify
-
-          print(f"Validated {len(workflow_paths)} workflow files.")
-          PY

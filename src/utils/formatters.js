@@ -7,10 +7,10 @@ export const formatErrorMessage = (error) => {
   if (typeof error === 'string') {
     return error
   }
-  if (error.response && error.response.data && error.response.data.message) {
+  if (error && error.response && error.response.data && error.response.data.message) {
     return error.response.data.message
   }
-  if (error.message) {
+  if (error && error.message) {
     return error.message
   }
   return '操作失败，请重试'
@@ -33,5 +33,5 @@ export const formatVersion = (version) => {
  * @returns {string} 处理后的订阅链接
  */
 export const processSubUrl = (url) => {
-  return url.replace(/(\n|\r|\n\r)/g, '|')
+  return url.replace(/\r\n|\n|\r/g, '|')
 }

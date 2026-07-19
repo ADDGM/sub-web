@@ -9,22 +9,25 @@ Vue 2.7 + Vite 8 SPA with Element UI. Keep changes small, follow existing patter
 - UI: Element UI 2
 - Router: Vue Router 3 (history mode, base from `import.meta.env.BASE_URL`)
 - Node: 24.x
-- No automated tests currently
+- Unit tests: Vitest 4.0 (Node environment, pure-function coverage)
 
 ## Commands
 
-| Command        | Description                      |
-| -------------- | -------------------------------- |
-| `yarn install` | Install dependencies             |
-| `yarn dev`     | Start dev server (host: 0.0.0.0) |
-| `yarn build`   | Production build                 |
-| `yarn preview` | Preview production build locally |
-| `yarn lint`    | ESLint fix                       |
-| `yarn lint:check` | ESLint check                  |
+| Command              | Description                         |
+| -------------------- | ----------------------------------- |
+| `yarn install`       | Install dependencies                |
+| `yarn dev`           | Start dev server (host: 0.0.0.0)    |
+| `yarn build`         | Production build                    |
+| `yarn build:subpath` | Production build with subpath assets |
+| `yarn preview`       | Preview production build locally    |
+| `yarn lint`          | ESLint check                        |
+| `yarn test`          | Run unit tests once                 |
+| `yarn test:watch`    | Run unit tests in watch mode        |
 
 ## CI / Workflows
 
-- **build.yml**: triggers on push to `master`/`develop` and PRs to `develop` — runs `yarn install --frozen-lockfile` + `yarn lint:check` + `yarn build`, then uploads `dist/` as artifact (7-day retention)
+- **build.yml**: triggers on pushes and pull requests to `develop`, plus manual dispatch — runs `yarn install --frozen-lockfile` + `yarn lint` + `yarn test` + `yarn build:subpath`, then uploads `dist/` as artifact (7-day retention, missing files fail the job)
+- **workflow-lint.yml**: always reports on pushes and pull requests to `develop`, plus manual dispatch — runs the checksum-verified actionlint `1.7.12` binary without installing project dependencies or rebuilding the frontend
 - **docker-build-push.yml**: triggers on `v*` tags or manual dispatch with a `tag` input — builds and pushes multi-arch images (`linux/amd64`, `linux/arm64`) to Docker Hub and GHCR, then creates or updates a GitHub Release with a `dist` archive and checksum; release notes include publish time, trigger event, run number, and commit; existing releases have their notes updated and same-name assets replaced; `vX.Y.Z-rc.N` pushes only `<tag>` and creates a prerelease, while `vX.Y.Z` also pushes `latest` and creates the latest release
 - Required GitHub settings for Docker Hub publishing: repository variable `DOCKER_IMAGE` (for example `yourname/subweb`) and secrets `DOCKERHUB_USERNAME` / `DOCKERHUB_PASSWORD`; GHCR uses `GITHUB_TOKEN` with `packages: write`
 
@@ -33,9 +36,11 @@ Vue 2.7 + Vite 8 SPA with Element UI. Keep changes small, follow existing patter
 - `master` mirrors upstream only; avoid custom application changes there.
 - `develop` contains local custom changes and is the normal development branch.
 - Sync upstream into `master`, then merge `master` into `develop` before releases.
-- Keep `package.json` `version` aligned with the release tag without the `v` prefix, e.g. `0.1.0` for `v0.1.0`.
-- Validate release candidates from `develop` with `yarn lint:check` and `yarn build`.
+- Keep `package.json` `version` aligned with the release tag core version, e.g. `0.1.0` for both `v0.1.0` and `v0.1.0-rc.1`.
+- Validate release candidates from `develop` with `yarn lint`, `yarn test`, and `yarn build:subpath`.
 - Use `vX.Y.Z-rc.N` tags for release-candidate Docker validation and GitHub prereleases, e.g. `v0.1.0-rc.1`; use `vX.Y.Z` tags for stable Docker releases and GitHub releases, e.g. `v0.1.0`.
+- Manual release dispatch accepts an existing release tag only; it never creates or moves a tag.
+- Release version components and the RC number must not contain leading zeros unless the value is exactly `0`.
 
 ## Repository Layout
 
@@ -71,6 +76,9 @@ src/
     ├── index.js                 # Registers SVG sprite
     └── svg/                     # SVG source files (e.g., github.svg)
 services/                        # Docker Compose stack (subweb + myurls + redis)
+tests/
+├── composables/                 # Subscription URL build/parse unit tests
+└── utils/                       # Validator, formatter, storage and search tests
 ```
 
 ## Key Modules
@@ -93,8 +101,9 @@ Returns plain object merged into `data()` via spread. Form fields include: `sour
 
 ### `src/composables/useUrlParser.js`
 
-`analyzeUrl(url)` — if URL contains `"target"`, returns as-is; otherwise fetches and returns `response.url` (short-link expansion, requires CORS on short-link service).  
-`parseUrl(url, form, customParams, onSuccess, onError)` — parses all query params back into form fields; unknown params become `customParams` entries.
+`analyzeUrl(url)` — if the URL has a `target` query parameter, returns as-is; otherwise fetches and returns `response.url` (short-link expansion, requires CORS on short-link service).
+
+`parseUrl(url, form, customParams, onSuccess, onError)` — resets form defaults, parses known query params back into form fields, and places unknown params in `customParams`.
 
 ### `src/services/`
 
@@ -156,7 +165,7 @@ TTL stored inside the JSON value as `{ setTime, ttl, expire, value }`. `expire` 
 ## Docker
 
 - Base images: `node:24-alpine` (build), `nginx:1.24-alpine` (runtime)
-- Build: `yarn install --frozen-lockfile && yarn build`, output copied to `/usr/share/nginx/html`
+- Build: `yarn install --frozen-lockfile && yarn build:subpath`, output copied to `/usr/share/nginx/html`
 - Services compose stack in `services/` includes myurls + Redis
 
 ## Git Hygiene
@@ -205,8 +214,9 @@ data() {
 
 ## Suggested Manual Checks
 
-- `yarn lint:check`
-- `yarn build`
+- `yarn lint`
+- `yarn test`
+- `yarn build:subpath`
 - Run `yarn dev` and smoke the main screen
 
 ## Notes for Agents
@@ -214,4 +224,4 @@ data() {
 - Follow existing patterns; minimise scope
 - No large refactors unless explicitly requested
 - Do not introduce TypeScript or new tooling without approval
-- No test runner configured; if added, document the single-test command here
+- Run one test file with `yarn test tests/utils/validators.test.js`

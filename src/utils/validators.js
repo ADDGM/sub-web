@@ -27,7 +27,7 @@ export const validateSubUrl = (url) => {
  * @returns {boolean} 验证结果
  */
 export const validateForm = (form) => {
-  if (form.sourceSubUrl === '' || form.clientType === '') {
+  if (!form || !form.sourceSubUrl?.trim() || !form.clientType?.trim()) {
     return false
   }
   return true

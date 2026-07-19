@@ -1,3 +1,5 @@
+import { useSubscriptionForm } from '@/composables/useSubscriptionForm'
+
 /**
  * URL解析逻辑
  */
@@ -8,22 +10,23 @@ export function useUrlParser() {
    * @returns {Promise<string>} 分析结果
    */
   const analyzeUrl = async (loadConfig) => {
-    // Check if `loadConfig` includes "target"
-    if (loadConfig.includes('target')) {
-      // If it does, return `loadConfig`
-      return loadConfig
-    } else {
-      // Otherwise, fetch the data from `loadConfig` using GET method and follow redirects
-      try {
-        let response = await fetch(loadConfig, {
-          method: 'GET',
-          redirect: 'follow'
-        })
-        // Return the URL from the response
-        return response.url
-      } catch (e) {
-        throw new Error('解析短链接失败，请检查短链接服务端是否配置跨域：' + e)
+    try {
+      const url = new URL(loadConfig)
+      if (url.searchParams.has('target')) {
+        return loadConfig
       }
+    } catch {
+      // Let fetch report invalid or unreachable short links with the shared error message.
+    }
+
+    try {
+      const response = await fetch(loadConfig, {
+        method: 'GET',
+        redirect: 'follow'
+      })
+      return response.url
+    } catch (error) {
+      throw new Error('解析短链接失败，请检查短链接服务端是否配置跨域：' + error)
     }
   }
 
@@ -47,22 +50,42 @@ export function useUrlParser() {
       // Analyze the URL and extract its components
       const url = new URL(await analyzeUrl(loadConfig))
 
-      // Set the custom backend URL
-      form.customBackend = url.origin + url.pathname + '?'
-
       // Parse the URL parameters
       const params = new URLSearchParams(url.search)
 
-      // Record parameters have been read
-      const getParam = params.get.bind(params)
-      const excludeParams = new Set()
-      params.get = (key) => {
-        excludeParams.add(key)
-        return getParam(key)
-      }
+      const knownParams = new Set([
+        'target',
+        'ver',
+        'url',
+        'insert',
+        'config',
+        'exclude',
+        'include',
+        'filename',
+        'ua',
+        'append_type',
+        'emoji',
+        'list',
+        'tfo',
+        'scv',
+        'fdn',
+        'sort',
+        'udp',
+        'expand',
+        'surge.doh',
+        'clash.doh',
+        'new_name'
+      ])
 
       // Get the 'target' parameter
       const target = params.get('target')
+      const sourceSubUrl = params.get('url')
+      if (!target || !sourceSubUrl) {
+        throw new Error('缺少必要的订阅参数')
+      }
+
+      Object.assign(form, useSubscriptionForm().form)
+      form.customBackend = url.origin + url.pathname + '?'
 
       // Set the client type based on the 'target' parameter
       if (target === 'surge') {
@@ -73,32 +96,52 @@ export function useUrlParser() {
       }
 
       // Set other form properties based on the URL parameters
-      form.sourceSubUrl = params.get('url').replace(/\|/g, '\n')
+      form.sourceSubUrl = sourceSubUrl.replace(/\|/g, '\n')
       form.insert = params.get('insert') === 'true'
-      form.remoteConfig = params.get('config')
-      form.excludeRemarks = params.get('exclude')
-      form.includeRemarks = params.get('include')
-      form.filename = params.get('filename')
-      form.userAgent = params.get('ua') || ''
-      form.appendType = params.get('append_type') === 'true'
-      form.emoji = params.get('emoji') === 'true'
-      form.nodeList = params.get('list') === 'true'
-      form.tfo = params.get('tfo') === 'true'
-      form.scv = params.get('scv') === 'true'
-      form.fdn = params.get('fdn') === 'true'
-      form.sort = params.get('sort') === 'true'
-      form.udp = params.get('udp') === 'true'
-      form.expand = params.get('expand') === 'true'
-      form.tpl.surge.doh = params.get('surge.doh') === 'true'
-      form.tpl.clash.doh = params.get('clash.doh') === 'true'
-      form.new_name = params.get('new_name') === 'true'
+      const textParams = {
+        config: 'remoteConfig',
+        exclude: 'excludeRemarks',
+        include: 'includeRemarks',
+        filename: 'filename',
+        ua: 'userAgent'
+      }
+      Object.entries(textParams).forEach(([paramName, formField]) => {
+        if (params.has(paramName)) {
+          form[formField] = params.get(paramName)
+        }
+      })
+
+      const booleanParams = {
+        append_type: 'appendType',
+        emoji: 'emoji',
+        list: 'nodeList',
+        tfo: 'tfo',
+        scv: 'scv',
+        fdn: 'fdn',
+        sort: 'sort',
+        udp: 'udp',
+        expand: 'expand',
+        new_name: 'new_name'
+      }
+      Object.entries(booleanParams).forEach(([paramName, formField]) => {
+        if (params.has(paramName)) {
+          form[formField] = params.get(paramName) === 'true'
+        }
+      })
+
+      if (params.has('surge.doh')) {
+        form.tpl.surge.doh = params.get('surge.doh') === 'true'
+      }
+      if (params.has('clash.doh')) {
+        form.tpl.clash.doh = params.get('clash.doh') === 'true'
+      }
 
       // Filter custom parameters
       customParams.splice(0, customParams.length)
       Array.from(
         params
           .entries()
-          .filter((e) => !excludeParams.has(e[0]))
+          .filter((e) => !knownParams.has(e[0]))
           .map((e) => ({ name: e[0], value: e[1] }))
       ).forEach((param) => customParams.push(param))
 

@@ -42,7 +42,7 @@ git branch --show-current
 git fetch --tags origin
 git tag --list "v*" --sort=-version:refname
 Select-String -Path "package.json" -Pattern '"version"'
-yarn lint:check
+yarn lint
 yarn build:subpath
 ```
 
